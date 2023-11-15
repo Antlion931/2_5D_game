@@ -23,11 +23,15 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(GLOB_RECURSE RESOURCES "resources/*")
 file(GLOB_RECURSE TESTS "tst/*.cpp")
 
+# Create resource files
+
+add_subdirectory(ResourceLoader)
+
 # Executable setup
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} sfml-graphics sfml-audio sfml-system sfml-window)
-target_include_directories(${PROJECT_NAME} PUBLIC inc)
+target_include_directories(${PROJECT_NAME} PUBLIC inc ${CMAKE_CURRENT_BINARY_DIR}/inc)
+target_link_libraries(${PROJECT_NAME} sfml-graphics sfml-audio sfml-system sfml-window resources)
 
 # Tests setup
 

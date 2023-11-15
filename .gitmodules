@@ -1,3 +1,6 @@
 [submodule "resources"]
 	path = resources
 	url = git@github.com:Moztanku/2_5D_game-resources.git
+[submodule "ResourceLoader"]
+	path = ResourceLoader
+	url = git@github.com:Moztanku/ResourceLoader.git
