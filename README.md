@@ -1,3 +1,7 @@
+### Synchronise submodules
+>git submodule update --init --recursive
+
+>git submodule update --recursive --remote
 #### Build (on Linux)
 >cmake -S . -B build && cmake --build build
 #### Run
