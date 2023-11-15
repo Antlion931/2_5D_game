@@ -28,6 +28,8 @@ jobs:
       run: sudo apt-get install libgtest-dev && cd /usr/src/gtest && sudo cmake CMakeLists.txt && sudo make && sudo cp lib/*.a /usr/lib && sudo ln -s /usr/lib/libgtest.a /usr/local/lib/libgtest.a && sudo ln -s /usr/lib/libgtest_main.a /usr/local/lib/libgtest_main.a
     - name: Install sfml
       run: sudo apt-get install libsfml-dev
+    - name: Install fmt
+      run: sudo add-apt-repository universe && sudo apt update && sudo apt install libfmt-dev
     - uses: actions/checkout@v1
     - name: get submodule ResourceLoader
       run: git clone https://github.com/Moztanku/ResourceLoader.git ResourceLoader
