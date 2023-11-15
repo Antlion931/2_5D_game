@@ -29,8 +29,10 @@ jobs:
     - name: Install sfml
       run: sudo apt-get install libsfml-dev
     - uses: actions/checkout@v1
-    - name: get submodules
-      run: git submodule update --init --recursive
+    - name: get submodule ResourceLoader
+      run: git clone https://github.com/Moztanku/ResourceLoader.git ResourceLoader
+    - name: get submodule resources
+      run: git clone https://github.com/Moztanku/2_5D_game-resources.git resources
     - name: build & compile
       run: cmake -S . -B build && cmake --build build
     - name: Run ut's
