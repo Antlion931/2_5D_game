@@ -6,25 +6,25 @@ on:
   pull_request:
     branches: [ master ]
 
-  jobs:
-    build:
-      runs-on: ${{ matrix.os }}
-      strategy:
-        fail-fast: false
-        matrix:
-          os: [ubuntu-latest]
-          build_type: [Release]
-          c_compiler: [gcc, clang]
-          cpp_compiler: [g++, clang++]
-        steps:
-        - name: Install gtest
-          run: sudo apt-get install libgtest-dev && cd /usr/src/gtest && sudo cmake CMakeLists.txt && sudo make && sudo cp lib/*.a /usr/lib && sudo ln -s /usr/lib/libgtest.a /usr/local/lib/libgtest.a && sudo ln -s /usr/lib/libgtest_main.a /usr/local/lib/libgtest_main.a
-        - name: Install sfml
-          run: sudo apt-get install libsfml-dev
-        - uses: actions/checkout@v1
-        - name: get submodules
-          run: git submodule update --init --recursive
-        - name: build & compile
-          run: cmake -S . -B build && cmake --build build
-        - name: Run ut's
-          run: ./build/2_5D_GAME_ut
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        build_type: [Release]
+        c_compiler: [gcc, clang]
+        cpp_compiler: [g++, clang++]
+      steps:
+      - name: Install gtest
+        run: sudo apt-get install libgtest-dev && cd /usr/src/gtest && sudo cmake CMakeLists.txt && sudo make && sudo cp lib/*.a /usr/lib && sudo ln -s /usr/lib/libgtest.a /usr/local/lib/libgtest.a && sudo ln -s /usr/lib/libgtest_main.a /usr/local/lib/libgtest_main.a
+      - name: Install sfml
+        run: sudo apt-get install libsfml-dev
+      - uses: actions/checkout@v1
+      - name: get submodules
+        run: git submodule update --init --recursive
+      - name: build & compile
+        run: cmake -S . -B build && cmake --build build
+      - name: Run ut's
+        run: ./build/2_5D_GAME_ut
