@@ -19,7 +19,7 @@ find_package(SFML 2.5 COMPONENTS graphics audio system window REQUIRED)
 
 # Files setup
 
-file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE SOURCES "src/**.cpp" )
 file(GLOB_RECURSE RESOURCES "resources/*")
 file(GLOB_RECURSE TESTS "tst/*.cpp")
 
@@ -36,7 +36,6 @@ add_subdirectory(ResourceLoader)
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC inc ${CMAKE_CURRENT_BINARY_DIR}/inc)
 target_link_libraries(${PROJECT_NAME} sfml-graphics sfml-audio sfml-system sfml-window resources)
-target_link_libraries(${PROJECT_NAME} flecs)
 target_link_libraries(${PROJECT_NAME} flecs_static)
 
 # Tests setup
