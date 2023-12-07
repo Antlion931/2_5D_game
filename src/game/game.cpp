@@ -94,7 +94,7 @@ void run()
     auto player_move = world.system<Player, Position>()
         .iter([](flecs::iter it, Player* player, Position* position)
         {
-            float speed {30};
+            float speed {60};
 
             for (int i : it)
             {
@@ -123,11 +123,11 @@ void run()
                 }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
                 {
-                    position[i].angle += 20 * it.delta_time();
+                    position[i].angle += 50 * it.delta_time();
                 }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
                 {
-                    position[i].angle -= 20 * it.delta_time();
+                    position[i].angle -= 50 * it.delta_time();
                 }
                 
                 if (isMoving)
@@ -140,7 +140,6 @@ void run()
             }
             
         });
-
 
     entity.set(Position{200, 400, 10});
     entity2.set(Position{300, 500, 10});
@@ -160,8 +159,18 @@ void run()
 
     auto clear_screen_sys = world.system("clear").kind(flecs::PreUpdate).iter([](flecs::iter& it){
         SFMLWindow* window = it.world().get_mut<SFMLWindow>();
+
         window->window.clear(sf::Color::Black);
         window->window.setView(window->playerView);
+        
+        // Process events
+        sf::Event event;
+        while (window->window.pollEvent(event))
+        {
+            // Close window: exit
+            if (event.type == sf::Event::Closed)
+                window->window.close();
+        }
     });
 
 
@@ -171,7 +180,7 @@ void run()
     });
 
 
-    while (true)
+    while (SFMLWindow::window.isOpen())
     {
         world.progress();
     }
