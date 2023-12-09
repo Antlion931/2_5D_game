@@ -15,7 +15,16 @@ include_directories(${GTEST_INCLUDE_DIRS})
 
 # SFML setup
 
-find_package(SFML 2.5 COMPONENTS graphics audio system window REQUIRED)
+find_package(SFML COMPONENTS graphics audio system window REQUIRED)
+
+# OpenGL setup
+
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+
+# GLM setup
+
+find_package(glm REQUIRED)
 
 # Files setup
 
@@ -31,7 +40,7 @@ add_subdirectory(ResourceLoader)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC inc ${CMAKE_CURRENT_BINARY_DIR}/inc)
-target_link_libraries(${PROJECT_NAME} sfml-graphics sfml-audio sfml-system sfml-window resources)
+target_link_libraries(${PROJECT_NAME} sfml-graphics sfml-audio sfml-system sfml-window GL GLEW resources)
 
 # Tests setup
 
