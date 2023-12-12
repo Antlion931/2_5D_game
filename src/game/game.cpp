@@ -17,16 +17,14 @@ class SFMLWindow
 public:
     static sf::RenderWindow window;
     sf::View playerView;
-    SFMLWindow()
+    sf::Event event;
+    SFMLWindow() : playerView{{0.0, 0.0}, {800.f, 600.f}}
     {
-        //window.create(sf::VideoMode{800, 600}, " Hello SFML!");
-        // window.setFramerateLimit(60);
-        playerView.setSize(800.f, 600.f);
         std::cout << "Singleton instance created." << std::endl;
     }
 };
 
-sf::RenderWindow SFMLWindow::window(sf::VideoMode{800, 600}, " Hello SFML!");
+sf::RenderWindow SFMLWindow::window(sf::VideoMode{800, 600}, "2_5D_Game!");
 
 
 class Ball : public sf::Drawable
@@ -65,7 +63,7 @@ public:
 
 private:
     sf::RectangleShape shape;
-        void draw(sf::RenderTarget& target, sf::RenderStates states) const
+    void draw(sf::RenderTarget& target, sf::RenderStates states) const
     {
         target.draw(this->shape, states);
     }
@@ -88,19 +86,28 @@ void run()
 
     flecs::entity player {world.entity()};
 
-    player.set<Position>({100, 100, 20}).set<Player>({});
+    player.set<Position>({100, 100, 0}).set<Player>({});
 
 
-    auto player_move = world.system<Player, Position>()
+    auto playerMoveSys = world.system<Player, Position>()
         .iter([](flecs::iter it, Player* player, Position* position)
         {
-            float speed {30};
+            float speed {100};
 
             for (int i : it)
             {
                 bool isMoving {false};
                 float deltaAngle {};
 
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+                {
+                    continue;
+                }
+
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+                {
+                    continue;
+                }
                 if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
                 {
                     isMoving = true;
@@ -121,13 +128,34 @@ void run()
                     isMoving = true;
                     deltaAngle = 90.0f;
                 }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+                {
+                    isMoving = true;
+                    deltaAngle = 45.f;
+                }
+
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+                {
+                    isMoving = true;
+                    deltaAngle = 315.f;
+                }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) && sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+                {
+                    isMoving = true;
+                    deltaAngle = 215.f;
+                }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) && sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+                {
+                    isMoving = true;
+                    deltaAngle = 135.f;
+                }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
                 {
-                    position[i].angle += 20 * it.delta_time();
+                    position[i].angle += 50 * it.delta_time();
                 }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
                 {
-                    position[i].angle -= 20 * it.delta_time();
+                    position[i].angle -= 50 * it.delta_time();
                 }
                 
                 if (isMoving)
@@ -146,9 +174,22 @@ void run()
     entity2.set(Position{300, 500, 10});
     entity3.set(Position{520,440, 160});
 
-    auto move_sys = world.system<Position>().kind(flecs::OnUpdate)
-    .iter([](flecs::iter it, Position *p) {
+
+
+    auto clearScreenSys = world.system("clear").kind(flecs::PreUpdate)
+    .iter([](flecs::iter& it)
+    {
         SFMLWindow* window = it.world().get_mut<SFMLWindow>();
+        window->window.clear(sf::Color::Black);
+        window->window.setView(window->playerView);
+
+    });
+
+    auto drawSys = world.system<Position>().kind(flecs::OnUpdate)
+    .iter([](flecs::iter it, Position *p)
+    {
+        SFMLWindow* window = it.world().get_mut<SFMLWindow>();
+
         for (int i : it) {
             Ball ball {p[i].x, p[i].y};
             Rectange rec {p[i].x, p[i].y, p[i].angle};
@@ -157,22 +198,29 @@ void run()
         }
     });
 
-
-    auto clear_screen_sys = world.system("clear").kind(flecs::PreUpdate).iter([](flecs::iter& it){
-        SFMLWindow* window = it.world().get_mut<SFMLWindow>();
-        window->window.clear(sf::Color::Black);
-        window->window.setView(window->playerView);
-    });
-
-
-    auto display_screen_sys = world.system("display").kind(flecs::PostUpdate).iter([](flecs::iter& it){
+    auto displayScreenSys = world.system("display").kind(flecs::PostUpdate)
+    .iter([](flecs::iter& it)
+    {
         SFMLWindow* window = it.world().get_mut<SFMLWindow>();
         window->window.display();
     });
 
 
+
+    SFMLWindow* window {world.get_mut<SFMLWindow>()};
+    sf::Event& event {window->event};
+    
     while (true)
     {
+        while (window->window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+            {
+                window->window.close();
+                std::cout << "Game Window closed\n";
+                return;
+            }
+        }
         world.progress();
     }
     
