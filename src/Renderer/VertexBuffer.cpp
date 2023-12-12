@@ -3,8 +3,6 @@
 #include <GL/glew.h>
 
 VertexBuffer::VertexBuffer(const void* data, uint size) {
-    
-
     glGenBuffers(1, &m_id);
     glBindBuffer(GL_ARRAY_BUFFER, m_id);
     glBufferData(GL_ARRAY_BUFFER, size * sizeof(float), data, GL_STATIC_DRAW);
