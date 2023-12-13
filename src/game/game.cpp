@@ -17,16 +17,14 @@ class SFMLWindow
 public:
     static sf::RenderWindow window;
     sf::View playerView;
-    SFMLWindow()
+    sf::Event event;
+    SFMLWindow() : playerView{{0.0, 0.0}, {800.f, 600.f}}
     {
-        //window.create(sf::VideoMode{800, 600}, " Hello SFML!");
-        // window.setFramerateLimit(60);
-        playerView.setSize(800.f, 600.f);
         std::cout << "Singleton instance created." << std::endl;
     }
 };
 
-sf::RenderWindow SFMLWindow::window(sf::VideoMode{800, 600}, " Hello SFML!");
+sf::RenderWindow SFMLWindow::window(sf::VideoMode{800, 600}, "2_5D_Game!");
 
 
 class Ball : public sf::Drawable
@@ -65,11 +63,13 @@ public:
 
 private:
     sf::RectangleShape shape;
-        void draw(sf::RenderTarget& target, sf::RenderStates states) const
+    void draw(sf::RenderTarget& target, sf::RenderStates states) const
     {
         target.draw(this->shape, states);
     }
 };
+
+
 
 struct Player
 {
@@ -82,14 +82,56 @@ struct Wall {
 
 using CollisionQuery = flecs::query<Collider, Wall>;
 
+
+struct Attacks
+{
+    bool a;
+};
+
+
+enum EnemyType
+{
+
+};
+
+struct Enemy
+{
+    bool s;
+    //EnemyType type {EnemyType::ATTACKING};
+};
+
+
+struct Health
+{
+
+    float level = 100.f;
+    void decrease(float value)
+    {
+        level -= value;
+    }
+
+    void increase(float value)
+    {
+        level += value;
+    }
+};
+
+
+void attack(flecs::entity entity, float )
+{
+
+}
+
+
+
 void run() 
 {
     flecs::world world {};
     world.set<SFMLWindow>(SFMLWindow{});
 
-    flecs::entity entity  {world.entity()};
-    flecs::entity entity2 {world.entity()};
-    flecs::entity entity3 {world.entity()};
+    flecs::entity enemy0 {world.entity()};
+    flecs::entity enemy1 {world.entity()};
+    flecs::entity enemy3 {world.entity()};
 
     flecs::entity wall {world.entity()};
     auto collider = sf::ConvexShape{4};
@@ -104,9 +146,7 @@ void run()
 
     wall.set(Collider{collider}).set<Wall>({});
 
-    flecs::entity player {world.entity()};
 
-    player.set<Position>({100, 100, 20}).set<Player>({});
     collider = sf::ConvexShape{4};
     collider.setPoint(0, sf::Vector2f{0, 0});
     collider.setPoint(1, sf::Vector2f{0, 40});
@@ -115,19 +155,32 @@ void run()
     collider.setFillColor(sf::Color(255, 0, 0, 100));
     collider.setOutlineColor(sf::Color::Red);
     collider.setOrigin(sf::Vector2f{20, 20});
+    flecs::entity player {world.entity("Player")};
+    player.set<Position>({100, 100, 20}).set<Player>({});
+
+    player.set<Position>({100, 100, 0}).set<Player>({}).set<Health>({100.f});
 
     player.set(Collider{collider});
 
-    auto player_move = world.system<Player, Position>()
+    auto playerMoveSys = world.system<Player, Position>()
         .iter([](flecs::iter it, Player* player, Position* position)
         {
-            float speed {60};
+            float speed {100};
 
             for (int i : it)
             {
                 bool isMoving {false};
                 float deltaAngle {};
 
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+                {
+                    continue;
+                }
+
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+                {
+                    continue;
+                }
                 if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
                 {
                     isMoving = true;
@@ -147,6 +200,27 @@ void run()
                 {
                     isMoving = true;
                     deltaAngle = 90.0f;
+                }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+                {
+                    isMoving = true;
+                    deltaAngle = 45.f;
+                }
+
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+                {
+                    isMoving = true;
+                    deltaAngle = 315.f;
+                }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) && sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+                {
+                    isMoving = true;
+                    deltaAngle = 215.f;
+                }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) && sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+                {
+                    isMoving = true;
+                    deltaAngle = 135.f;
                 }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
                 {
@@ -168,13 +242,61 @@ void run()
             
         });
 
-    entity.set(Position{200, 400, 10});
-    entity2.set(Position{300, 500, 10});
-    entity3.set(Position{520,440, 160});
+    enemy0.set(Position{200, 400, 10}).set<Enemy>({}).set<Health>({}).add<Attacks>(player);
+    enemy0.set(Collider{collider});
+    enemy1.set(Position{300, 500, 10}).set<Enemy>({}).set<Health>({}).add<Attacks>(player);
+    enemy1.set(Collider{collider});
+    enemy3.set(Position{520,440, 160}).set<Enemy>({}).set<Health>({}).add<Attacks>(player);
+    enemy3.set(Collider{collider});
 
-    auto move_sys = world.system<Position>().kind(flecs::OnUpdate)
-    .iter([](flecs::iter it, Position *p) {
+    auto chasePlayerSys = world.system<Enemy, Position>()
+    .kind(flecs::OnUpdate)
+    .with<Attacks, Player>()
+    .each([](flecs::iter& it, size_t i, Enemy& e, Position& enemyPosition)
+    {
+        flecs::entity player {it.entity(i).target<Attacks>()};
+        const Position* playerPosition {player.get<Position>()};
+        double distance {sqrt(pow(playerPosition->x - enemyPosition.x, 2) + pow(playerPosition->y - enemyPosition.y, 2))};
+        
+        float speed {30.f};
+        float dirX {};
+        float dirY {};
+        if (distance < 300.f)
+        {
+            std::cout << "Enemy on [" << enemyPosition.x << ", " <<  enemyPosition.y << " ] Attacks: " << it.entity(i).target<Attacks>().name() << std::endl;
+            player.get_mut<Health>()->decrease(5.f * it.delta_time());
+            std::cout << "Player Health : " << player.get<Health>()->level << "\n";
+
+            dirX = playerPosition->x - enemyPosition.x;
+            dirY = playerPosition->y - enemyPosition.y;
+
+            enemyPosition.angle = atan2(dirY, dirX) * 180 / M_PI ;
+
+            dirX /= sqrt(dirX*dirX + dirY*dirY);
+            dirY /= sqrt(dirX*dirX + dirY*dirY);
+
+            enemyPosition.x +=  dirX * speed * it.delta_time();
+            enemyPosition.y +=  dirY * speed * it.delta_time();
+        }
+
+
+    });
+
+
+    auto clearScreenSys = world.system("clear").kind(flecs::PreUpdate)
+    .iter([](flecs::iter& it)
+    {
         SFMLWindow* window = it.world().get_mut<SFMLWindow>();
+        window->window.clear(sf::Color::Black);
+        window->window.setView(window->playerView);
+
+    });
+
+    auto drawSys = world.system<Position>().kind(flecs::OnUpdate)
+    .iter([](flecs::iter it, Position *p)
+    {
+        SFMLWindow* window = it.world().get_mut<SFMLWindow>();
+
         for (int i : it) {
             Ball ball {p[i].x, p[i].y};
             Rectange rec {p[i].x, p[i].y, p[i].angle};
@@ -231,14 +353,28 @@ void run()
     });
 
 
-    auto display_screen_sys = world.system("display").kind(flecs::PostUpdate).iter([](flecs::iter& it){
+    auto display_screen_sys = world.system("display").kind(flecs::PostUpdate)
+    .iter([](flecs::iter& it)
+    {
         SFMLWindow* window = it.world().get_mut<SFMLWindow>();
         window->window.display();
     });
 
 
-    while (SFMLWindow::window.isOpen())
+    SFMLWindow* window {world.get_mut<SFMLWindow>()};
+    sf::Event& event {window->event};
+    
+    while (true)
     {
+        while (window->window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+            {
+                window->window.close();
+                std::cout << "Game Window closed\n";
+                return;
+            }
+        }
         world.progress();
     }
     
