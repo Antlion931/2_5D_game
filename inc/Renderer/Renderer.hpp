@@ -222,7 +222,7 @@ class Renderer
         } m_context;
 
         struct {
-            glm::vec2 position = {0.0f, 0.0f};
+            glm::vec2 position = {-1.0f, -1.0f};
             glm::vec4 rotation = {0.0f, 0.0f, 0.0f, 1.0f};
         } m_camera;
 
@@ -303,7 +303,10 @@ class Renderer
 
                 if (distance != -1.f)
                 {
-                    float color = 1.f - distance / 50.f;
+                    auto pow2([](float x) { return x * x; });
+                    auto clamp([](float x, float min, float max) { return x < min ? min : (x > max ? max : x); });
+                    float color = pow2(1.f - clamp(distance / 150.f, 0.f, 1.f));
+                    
                     const float height = m_window.getSize().y;
                     const float center = m_window.getSize().x / 2.f;
                     const float wallHeight = height / distance * 4.f;
@@ -336,7 +339,7 @@ class Renderer
 
                 shader->Bind();
                 shader->SetUniform("u_color", 1.0f, 1.0f, 1.0f, 1.0f);
-                shader->SetUniform("u_projection", proj);
+                shader->SetUniformM("u_projection", proj);
                 va.Bind();
 
                 glDrawArrays(GL_LINES, 0, 2);
@@ -374,7 +377,7 @@ class Renderer
 
                 shader->Bind();
                 shader->SetUniform("u_color", 1.0f, 0.0f, 0.0f, 1.0f);
-                shader->SetUniform("u_projection", proj);
+                shader->SetUniformM("u_projection", proj);
                 va.Bind();
 
                 glDrawArrays(GL_LINES, 0, 2);
@@ -445,7 +448,7 @@ class Renderer
 
                     shader->Bind();
                     shader->SetUniform("u_color", 0.0f, 1.0f, 0.0f, 1.0f);
-                    shader->SetUniform("u_projection", proj);
+                    shader->SetUniformM("u_projection", proj);
                     va.Bind();
 
                     glDrawArrays(GL_LINES, 0, 2);

@@ -189,7 +189,7 @@ INSTANTIATE_SET_UNIFORM(double)
 #undef INSTANTIATE_SET_UNIFORM
 
 template<typename Matrix>
-void Shader::SetUniform(const std::string& name, const Matrix& matrix)
+void Shader::SetUniformM(const std::string& name, const Matrix& matrix)
 {
     const uint location = GetUniformLocation(name);
 
@@ -199,15 +199,36 @@ void Shader::SetUniform(const std::string& name, const Matrix& matrix)
         glUniformMatrix3fv(location, 1, GL_FALSE, &matrix[0][0]);
     else if constexpr(std::is_same_v<Matrix, glm::mat4>)
         glUniformMatrix4fv(location, 1, GL_FALSE, &matrix[0][0]);
+    else if constexpr(std::is_same_v<Matrix, glm::mat2x3>)
+        glUniformMatrix2x3fv(location, 1, GL_FALSE, &matrix[0][0]);
+    else if constexpr(std::is_same_v<Matrix, glm::mat2x4>)
+        glUniformMatrix2x4fv(location, 1, GL_FALSE, &matrix[0][0]);
+    else if constexpr(std::is_same_v<Matrix, glm::mat3x2>)
+        glUniformMatrix3x2fv(location, 1, GL_FALSE, &matrix[0][0]);
+    else if constexpr(std::is_same_v<Matrix, glm::mat3x4>)
+        glUniformMatrix3x4fv(location, 1, GL_FALSE, &matrix[0][0]);
+    else if constexpr(std::is_same_v<Matrix, glm::mat4x2>)
+        glUniformMatrix4x2fv(location, 1, GL_FALSE, &matrix[0][0]);
+    else if constexpr(std::is_same_v<Matrix, glm::mat4x3>)
+        glUniformMatrix4x3fv(location, 1, GL_FALSE, &matrix[0][0]);
     else
         static_assert(false, "Invalid matrix type");
 }
 
 #define INSTANTIATE_SET_UNIFORM_MATRIX(type) \
-    template void Shader::SetUniform(const std::string& name, const type&);
+    template void Shader::SetUniformM(const std::string& name, const type&);
 
 INSTANTIATE_SET_UNIFORM_MATRIX(glm::mat2)
 INSTANTIATE_SET_UNIFORM_MATRIX(glm::mat3)
 INSTANTIATE_SET_UNIFORM_MATRIX(glm::mat4)
+
+INSTANTIATE_SET_UNIFORM_MATRIX(glm::mat2x3)
+INSTANTIATE_SET_UNIFORM_MATRIX(glm::mat2x4)
+
+INSTANTIATE_SET_UNIFORM_MATRIX(glm::mat3x2)
+INSTANTIATE_SET_UNIFORM_MATRIX(glm::mat3x4)
+
+INSTANTIATE_SET_UNIFORM_MATRIX(glm::mat4x2)
+INSTANTIATE_SET_UNIFORM_MATRIX(glm::mat4x3)
 
 #undef INSTANTIATE_SET_UNIFORM_MATRIX

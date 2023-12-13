@@ -20,7 +20,7 @@ class Shader
         void SetUniform(const std::string& name, Args... args);
 
         template<typename Matrix>
-        void SetUniform(const std::string& name, const Matrix& matrix);
+        void SetUniformM(const std::string& name, const Matrix& matrix);
     private:
         uint m_id;
         std::filesystem::path m_FilePath;
