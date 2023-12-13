@@ -69,10 +69,54 @@ private:
     }
 };
 
+
+
 struct Player
 {
    bool a;
 };
+
+
+
+struct Attacks
+{
+    bool a;
+};
+
+
+enum EnemyType
+{
+
+};
+
+struct Enemy
+{
+    bool s;
+    //EnemyType type {EnemyType::ATTACKING};
+};
+
+
+struct Health
+{
+
+    float level = 100.f;
+    void decrease(float value)
+    {
+        level -= value;
+    }
+
+    void increase(float value)
+    {
+        level += value;
+    }
+};
+
+
+void attack(flecs::entity entity, float )
+{
+
+}
+
 
 
 void run() 
@@ -80,13 +124,13 @@ void run()
     flecs::world world {};
     world.set<SFMLWindow>(SFMLWindow{});
 
-    flecs::entity entity  {world.entity()};
-    flecs::entity entity2 {world.entity()};
-    flecs::entity entity3 {world.entity()};
+    flecs::entity enemy0 {world.entity()};
+    flecs::entity enemy1 {world.entity()};
+    flecs::entity enemy3 {world.entity()};
 
-    flecs::entity player {world.entity()};
+    flecs::entity player {world.entity("Player")};
 
-    player.set<Position>({100, 100, 0}).set<Player>({});
+    player.set<Position>({100, 100, 0}).set<Player>({}).set<Health>({100.f});
 
 
     auto playerMoveSys = world.system<Player, Position>()
@@ -170,10 +214,44 @@ void run()
         });
 
 
-    entity.set(Position{200, 400, 10});
-    entity2.set(Position{300, 500, 10});
-    entity3.set(Position{520,440, 160});
+    enemy0.set(Position{200, 400, 10}).set<Enemy>({}).set<Health>({}).add<Attacks>(player);
+    enemy1.set(Position{300, 500, 10}).set<Enemy>({}).set<Health>({}).add<Attacks>(player);
+    enemy3.set(Position{520,440, 160}).set<Enemy>({}).set<Health>({}).add<Attacks>(player);
 
+
+
+    auto chasePlayerSys = world.system<Enemy, Position>()
+    .kind(flecs::OnUpdate)
+    .with<Attacks, Player>()
+    .each([](flecs::iter& it, size_t i, Enemy& e, Position& enemyPosition)
+    {
+        flecs::entity player {it.entity(i).target<Attacks>()};
+        const Position* playerPosition {player.get<Position>()};
+        double distance {sqrt(pow(playerPosition->x - enemyPosition.x, 2) + pow(playerPosition->y - enemyPosition.y, 2))};
+        
+        float speed {30.f};
+        float dirX {};
+        float dirY {};
+        if (distance < 300.f && distance > 50.f)
+        {
+            std::cout << "Enemy on [" << enemyPosition.x << ", " <<  enemyPosition.y << " ] Attacks: " << it.entity(i).target<Attacks>().name() << std::endl;
+            player.get_mut<Health>()->decrease(5.f * it.delta_time());
+            std::cout << "Player Health : " << player.get<Health>()->level << "\n";
+
+            dirX = playerPosition->x - enemyPosition.x;
+            dirY = playerPosition->y - enemyPosition.y;
+
+            enemyPosition.angle = atan2(dirY, dirX) * 180 / M_PI ;
+
+            dirX /= sqrt(dirX*dirX + dirY*dirY);
+            dirY /= sqrt(dirX*dirX + dirY*dirY);
+
+            enemyPosition.x +=  dirX * speed * it.delta_time();
+            enemyPosition.y +=  dirY * speed * it.delta_time();
+        }
+
+
+    });
 
 
     auto clearScreenSys = world.system("clear").kind(flecs::PreUpdate)
