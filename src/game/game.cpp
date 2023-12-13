@@ -1,4 +1,5 @@
-#include "game.h"
+#include "game.hpp"
+#include "collision.hpp"
 #include <flecs.h>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
@@ -10,7 +11,6 @@ struct Position
     float y;
     float angle;
 };
-
 
 class SFMLWindow
 {
@@ -76,6 +76,11 @@ struct Player
    bool a;
 };
 
+struct Wall {
+    bool a;
+};
+
+using CollisionQuery = flecs::query<Collider, Wall>;
 
 void run() 
 {
@@ -86,10 +91,32 @@ void run()
     flecs::entity entity2 {world.entity()};
     flecs::entity entity3 {world.entity()};
 
+    flecs::entity wall {world.entity()};
+    auto collider = sf::ConvexShape{4};
+    collider.setPoint(0, sf::Vector2f{0, 0});
+    collider.setPoint(1, sf::Vector2f{0, 400});
+    collider.setPoint(2, sf::Vector2f{40, 400});
+    collider.setPoint(3, sf::Vector2f{40, 0});
+    collider.setFillColor(sf::Color(0, 255, 0, 100));
+    collider.setOutlineColor(sf::Color::Green);
+    collider.setOrigin(sf::Vector2f{20, 200});
+    collider.setPosition(0, 0);
+
+    wall.set(Collider{collider}).set<Wall>({});
+
     flecs::entity player {world.entity()};
 
     player.set<Position>({100, 100, 20}).set<Player>({});
+    collider = sf::ConvexShape{4};
+    collider.setPoint(0, sf::Vector2f{0, 0});
+    collider.setPoint(1, sf::Vector2f{0, 40});
+    collider.setPoint(2, sf::Vector2f{40, 40});
+    collider.setPoint(3, sf::Vector2f{40, 0});
+    collider.setFillColor(sf::Color(255, 0, 0, 100));
+    collider.setOutlineColor(sf::Color::Red);
+    collider.setOrigin(sf::Vector2f{20, 20});
 
+    player.set(Collider{collider});
 
     auto player_move = world.system<Player, Position>()
         .iter([](flecs::iter it, Player* player, Position* position)
@@ -156,6 +183,36 @@ void run()
         }
     });
 
+    auto colider_debug_draw = world.system<Collider>().kind(flecs::OnValidate)
+    .iter([](flecs::iter it, Collider *p) {
+        SFMLWindow* window = it.world().get_mut<SFMLWindow>();
+        for (int i : it) {
+            window->window.draw(p[i].shape);
+        }
+    });
+
+    auto collider_position_update = world.system<Collider, Position>().kind(flecs::OnUpdate)
+    .iter([](flecs::iter& it, Collider* collider, Position* position){
+        for (int i : it) {
+            collider[i].shape.setPosition(position[i].x, position[i].y);
+            collider[i].shape.setRotation(position[i].angle);
+
+            //std::cout << position[i].x << " " << position[i].y << ", "<< position[i].angle << std::endl;
+        }
+    });
+
+    CollisionQuery wall_query = world.query<Collider, Wall>();
+
+    auto collision_system = world.system<Collider, Position>().without<Wall>().ctx(&wall_query).each([](flecs::iter& it, size_t i, Collider& r1, Position& p1) {
+            CollisionQuery *q = it.ctx<CollisionQuery>();
+            flecs::entity e1 = it.entity(i);
+
+            q->each([&](flecs::entity e2, Collider& r2, Wall& w) {
+                    auto position = r1.updatePositionToResolveCollision(&r2);
+                    p1.x = position.x;
+                    p1.y = position.y;
+            });
+        });
 
     auto clear_screen_sys = world.system("clear").kind(flecs::PreUpdate).iter([](flecs::iter& it){
         SFMLWindow* window = it.world().get_mut<SFMLWindow>();

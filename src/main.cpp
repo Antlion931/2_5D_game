@@ -1,6 +1,6 @@
 #include <Resources.hpp>
-#include "flecs.h"
-#include "game.h"
+#include <flecs.h>
+#include "game.hpp"
 
 int main()
 {
