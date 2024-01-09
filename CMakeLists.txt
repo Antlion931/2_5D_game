@@ -54,6 +54,6 @@ target_link_libraries(${PROJECT_NAME} flecs_static)
 
 add_executable(${PROJECT_NAME}_ut ${TESTS} ${GAME_SOURCES} ${RENDERER_SOURCES})
 target_link_libraries(${PROJECT_NAME}_ut ${GTEST_BOTH_LIBRARIES})
-target_include_directories(${PROJECT_NAME}_ut PUBLIC inc)
+target_include_directories(${PROJECT_NAME}_ut PUBLIC inc ${CMAKE_CURRENT_BINARY_DIR}/inc)
 target_link_libraries(${PROJECT_NAME}_ut flecs sfml-graphics sfml-audio sfml-system sfml-window GL GLEW resources)
 target_link_libraries(${PROJECT_NAME}_ut flecs_static)
