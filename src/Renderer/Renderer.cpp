@@ -20,7 +20,7 @@ namespace {
         return a.x * b.y - a.y * b.x;
     }
 
-    static const glm::mat4 proj = glm::ortho(-200.f, 200.f, -200.f, 200.f, -1.f, 1.f);
+    static const glm::mat4 proj = glm::ortho(200.f, -200.f, -200.f, 200.f, -1.f, 1.f);
     constexpr float PI = 3.14159265358979323846f;
 }
 
@@ -30,6 +30,9 @@ Renderer::Renderer(sf::RenderWindow& window): m_window(window)
             throw std::runtime_error("Failed to initialize GLEW");
 
         std::cout << "LOG: OpenGL Version: " << glGetString(GL_VERSION) << std::endl;   // TODO: Logging utility
+
+        shader = new Shader("resources/shaders/walls.glsl");
+        shader3d = new Shader("resources/shaders/wall3d.glsl");
     }
 
 void Renderer::render(WallsQuery* query) noexcept
@@ -248,13 +251,12 @@ void Renderer::draw2D(WallsQuery *query) noexcept
 
             VertexArray va;
             va.AddBuffer(vb, layout);
-            std::cout << "1" << std::endl;
-
+            va.Bind();
             shader->Bind(); // FIXME: You can no bind in a query
-            std::cout << "2" << std::endl;
             shader->SetUniform("u_color", 1.0f, 1.0f, 1.0f, 1.0f);
             shader->SetUniformM("u_projection", proj);
-            va.Bind();
+            shader->SetUniform("u_PlayerPos", m_camera.position.x, m_camera.position.y);
+            shader->SetUniform("u_PlayerRot", m_camera.rotation.x);
 
 
             glDrawArrays(GL_LINES, 0, 2);
@@ -264,7 +266,7 @@ void Renderer::draw2D(WallsQuery *query) noexcept
         }
     });
 
-
+    
     // Player
     {
         const float playerLength = 2.0f;
@@ -303,14 +305,14 @@ void Renderer::draw2D(WallsQuery *query) noexcept
         shader->Unbind();
     }
 
-    const float fov = 2.f * PI;
+    const float fov = 90.0f / 180.0f * PI;
     const float halfFov = fov / 2.f;
 
     const uint rayCount = m_window.getSize().x / pixelsPerRay;
 
     const float angleBetweenRays = fov / rayCount;
 
-    for (uint i = 0; i < rayCount; i++)
+        for (uint i = 0; i < rayCount; i++)
     {
         const float angle = m_camera.rotation.x - halfFov + i * angleBetweenRays + angleBetweenRays / 2.f;
 
@@ -320,7 +322,7 @@ void Renderer::draw2D(WallsQuery *query) noexcept
         float distance = -1.f;
         glm::vec2 closestHit = {0.f, 0.f};
 
-        query->each([&](Walls& walls) {
+            query->each([&](Walls& walls) {
             for (const auto& wall : walls.walls)
             {
                 const glm::vec2 p = m_camera.position;
@@ -351,7 +353,7 @@ void Renderer::draw2D(WallsQuery *query) noexcept
             }
         });
 
-        if (distance != -1.f)
+            if (distance != -1.f)
         {
             const float vertices[] = {
                 m_camera.position.x, m_camera.position.y,
