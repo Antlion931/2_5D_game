@@ -2,7 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include "collision.hpp"
 
-Collider player_collider() {
+ConvexShapeCollider player_collider() {
     auto collider = sf::ConvexShape{4};
     collider.setPoint(0, sf::Vector2f{0, 0});
     collider.setPoint(1, sf::Vector2f{0, 40});
@@ -10,10 +10,10 @@ Collider player_collider() {
     collider.setPoint(3, sf::Vector2f{40, 0});
     collider.setOrigin(sf::Vector2f{20, 20});
 
-    return Collider{collider};
+    return ConvexShapeCollider{collider};
 }
 
-Collider wall_collider() {
+ConvexShapeCollider wall_collider() {
     auto collider = sf::ConvexShape{4};
     collider.setPoint(0, sf::Vector2f{0, 0});
     collider.setPoint(1, sf::Vector2f{0, 400});
@@ -21,7 +21,7 @@ Collider wall_collider() {
     collider.setPoint(3, sf::Vector2f{40, 0});
     collider.setOrigin(sf::Vector2f{20, 200});
 
-    return Collider{collider};
+    return ConvexShapeCollider{collider};
 }
 
 TEST(collision, player_on_right_eage_of_wall)

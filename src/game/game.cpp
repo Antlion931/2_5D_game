@@ -164,7 +164,7 @@ void run()
     walls.push_back(std::make_pair(glm::vec2{0, 460}, glm::vec2{0, -20}));
     walls.push_back(std::make_pair(glm::vec2{0, -20}, glm::vec2{-20, -20}));
 
-    wall0.set(Collider{collider}).set(Walls{walls});
+    wall0.set(ConvexShapeCollider{collider}).set(Walls{walls});
 
     flecs::entity wall1 {world.entity()};
     collider.setPoint(0, sf::Vector2f{-20, 400});
@@ -179,7 +179,7 @@ void run()
     walls.push_back(std::make_pair(glm::vec2{460, 460}, glm::vec2{460, 400}));
     walls.push_back(std::make_pair(glm::vec2{460, 400}, glm::vec2{-20, 400}));
 
-    wall1.set(Collider{collider}).set(Walls{walls});
+    wall1.set(ConvexShapeCollider{collider}).set(Walls{walls});
 
     flecs::entity wall2 {world.entity()};
     collider.setPoint(0, sf::Vector2f{400, -20});
@@ -194,7 +194,7 @@ void run()
     walls.push_back(std::make_pair(glm::vec2{460, 460}, glm::vec2{460, -20}));
     walls.push_back(std::make_pair(glm::vec2{460, -20}, glm::vec2{400, -20}));
 
-    wall2.set(Collider{collider}).set(Walls{walls});
+    wall2.set(ConvexShapeCollider{collider}).set(Walls{walls});
 
     flecs::entity wall3 {world.entity()};
     collider.setPoint(0, sf::Vector2f{-20, -20});
@@ -209,7 +209,7 @@ void run()
     walls.push_back(std::make_pair(glm::vec2{460, 0}, glm::vec2{460, -20}));
     walls.push_back(std::make_pair(glm::vec2{460, -20}, glm::vec2{-20, -20}));
 
-    wall3.set(Collider{collider}).set(Walls{walls});
+    wall3.set(ConvexShapeCollider{collider}).set(Walls{walls});
 
     flecs::entity wall4 {world.entity()};
     collider.setPoint(0, sf::Vector2f{40, 40});
@@ -224,7 +224,7 @@ void run()
     walls.push_back(std::make_pair(glm::vec2{60, 360}, glm::vec2{60, 40}));
     walls.push_back(std::make_pair(glm::vec2{60, 40}, glm::vec2{40, 40}));
 
-    wall4.set(Collider{collider}).set(Walls{walls});
+    wall4.set(ConvexShapeCollider{collider}).set(Walls{walls});
 
     flecs::entity wall5 {world.entity()};
     collider.setPoint(0, sf::Vector2f{40, 340});
@@ -239,7 +239,7 @@ void run()
     walls.push_back(std::make_pair(glm::vec2{180, 360}, glm::vec2{180, 340}));
     walls.push_back(std::make_pair(glm::vec2{180, 340}, glm::vec2{40, 340}));
 
-    wall5.set(Collider{collider}).set(Walls{walls});
+    wall5.set(ConvexShapeCollider{collider}).set(Walls{walls});
 
     flecs::entity wall6 {world.entity()};
     collider.setPoint(0, sf::Vector2f{220, 340});
@@ -254,7 +254,7 @@ void run()
     walls.push_back(std::make_pair(glm::vec2{360, 360}, glm::vec2{360, 340}));
     walls.push_back(std::make_pair(glm::vec2{360, 340}, glm::vec2{220, 340}));
 
-    wall6.set(Collider{collider}).set(Walls{walls});
+    wall6.set(ConvexShapeCollider{collider}).set(Walls{walls});
 
     flecs::entity wall7 {world.entity()};
     collider.setPoint(0, sf::Vector2f{340, 40});
@@ -269,7 +269,7 @@ void run()
     walls.push_back(std::make_pair(glm::vec2{360, 360}, glm::vec2{360, 40}));
     walls.push_back(std::make_pair(glm::vec2{360, 40}, glm::vec2{340, 40}));
 
-    wall7.set(Collider{collider}).set(Walls{walls});
+    wall7.set(ConvexShapeCollider{collider}).set(Walls{walls});
 
     flecs::entity wall8 {world.entity()};
     collider.setPoint(0, sf::Vector2f{40, 40});
@@ -284,7 +284,7 @@ void run()
     walls.push_back(std::make_pair(glm::vec2{360, 60}, glm::vec2{360, 40}));
     walls.push_back(std::make_pair(glm::vec2{360, 40}, glm::vec2{40, 40}));
 
-    wall8.set(Collider{collider}).set(Walls{walls});
+    wall8.set(ConvexShapeCollider{collider}).set(Walls{walls});
 
     flecs::entity wall9 {world.entity()};
     collider.setPoint(0, sf::Vector2f{120, 120});
@@ -299,7 +299,7 @@ void run()
     walls.push_back(std::make_pair(glm::vec2{180, 180}, glm::vec2{180, 120}));
     walls.push_back(std::make_pair(glm::vec2{180, 120}, glm::vec2{120, 120}));
 
-    wall9.set(Collider{collider}).set(Walls{walls});
+    wall9.set(ConvexShapeCollider{collider}).set(Walls{walls});
 
     flecs::entity wall10 {world.entity()};
 
@@ -316,7 +316,7 @@ void run()
     walls.push_back(std::make_pair(glm::vec2{220, 280}, glm::vec2{280, 280}));
     walls.push_back(std::make_pair(glm::vec2{280, 280}, glm::vec2{250, 220}));
 
-    wall10.set(Collider{collider2}).set(Walls{walls});
+    wall10.set(ConvexShapeCollider{collider2}).set(Walls{walls});
 
     flecs::entity wall11 {world.entity()};
 
@@ -336,7 +336,7 @@ void run()
     walls.push_back(std::make_pair(glm::vec2{165, 280}, glm::vec2{180, 260}));
     walls.push_back(std::make_pair(glm::vec2{180, 260}, glm::vec2{150, 220}));
 
-    wall11.set(Collider{collider5}).set(Walls{walls});
+    wall11.set(ConvexShapeCollider{collider5}).set(Walls{walls});
 
     flecs::entity wall12 {world.entity()};
 
@@ -358,7 +358,7 @@ void run()
     walls.push_back(std::make_pair(glm::vec2{280, 150}, glm::vec2{265, 120}));
     walls.push_back(std::make_pair(glm::vec2{265, 120}, glm::vec2{235, 120}));
 
-    wall12.set(Collider{collider6}).set(Walls{walls});
+    wall12.set(ConvexShapeCollider{collider6}).set(Walls{walls});
 
     collider = sf::ConvexShape{4};
     collider.setPoint(0, sf::Vector2f{0, 0});
@@ -372,7 +372,7 @@ void run()
 
     player.set<Position>({200, 380, 270}).set<Player>({}).set<Health>({100.f});
 
-    player.set(Collider{collider});
+    player.set(ConvexShapeCollider{collider});
 
     auto playerMoveSys = world.system<Player, Position>()
         .iter([](flecs::iter it, Player* player, Position* position)
@@ -521,8 +521,8 @@ void run()
         }
     });
 
-    auto colider_debug_draw = world.system<Collider>().kind(flecs::OnValidate)
-    .iter([](flecs::iter it, Collider *p) {
+    auto colider_debug_draw = world.system<ConvexShapeCollider>().kind(flecs::OnValidate)
+    .iter([](flecs::iter it, ConvexShapeCollider *p) {
         //SFMLWindow* window = it.world().get_mut<SFMLWindow>();
         for (int i : it) {
             //window->window.draw(p[i].shape);
@@ -539,8 +539,8 @@ void run()
         wl->renderer.render(q);
     });
 
-    auto collider_position_update = world.system<Collider, Position>().kind(flecs::OnUpdate)
-    .iter([](flecs::iter& it, Collider* collider, Position* position){
+    auto collider_position_update = world.system<ConvexShapeCollider, Position>().kind(flecs::OnUpdate)
+    .iter([](flecs::iter& it, ConvexShapeCollider* collider, Position* position){
         for (int i : it) {
             collider[i].shape.setPosition(position[i].x, position[i].y);
             collider[i].shape.setRotation(position[i].angle);
@@ -549,13 +549,13 @@ void run()
         }
     });
 
-    CollisionQuery wall_query = world.query<Collider, Walls>();
+    CollisionQuery wall_query = world.query<ConvexShapeCollider, Walls>();
 
-    auto collision_system = world.system<Collider, Position>().without<Walls>().ctx(&wall_query).each([](flecs::iter& it, size_t i, Collider& r1, Position& p1) {
+    auto collision_system = world.system<ConvexShapeCollider, Position>().without<Walls>().ctx(&wall_query).each([](flecs::iter& it, size_t i, ConvexShapeCollider& r1, Position& p1) {
             CollisionQuery *q = it.ctx<CollisionQuery>();
             flecs::entity e1 = it.entity(i);
 
-            q->each([&](flecs::entity e2, Collider& r2, Walls& w) {
+            q->each([&](flecs::entity e2, ConvexShapeCollider& r2, Walls& w) {
                     auto position = r1.updatePositionToResolveCollision(&r2);
                     p1.x = position.x;
                     p1.y = position.y;

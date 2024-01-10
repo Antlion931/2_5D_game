@@ -223,7 +223,7 @@ void Renderer::draw3D(WallsQuery* query) noexcept
                     
             const float height = m_window.getSize().y;
             const float center = m_window.getSize().x / 2.f;
-            const float wallHeight = height / distance * 8.f;
+            const float wallHeight = height / distance * 64.f;
             glBegin(GL_QUADS);
                 glOrtho(0.f, m_window.getSize().x, m_window.getSize().y, 0.f, -1.f, 1.f);
                 glColor3f(color, 0.f, 0.f);
@@ -303,7 +303,7 @@ void Renderer::draw2D(WallsQuery *query) noexcept
         shader->Unbind();
     }
 
-    const float fov = 90.f / 180.f * PI;
+    const float fov = 2.f * PI;
     const float halfFov = fov / 2.f;
 
     const uint rayCount = m_window.getSize().x / pixelsPerRay;

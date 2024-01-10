@@ -2,7 +2,7 @@
 #include <SFML/Graphics/ConvexShape.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics.hpp>
-#include <iostream>
+#include <algorithm>
 #include <limits>
 #include <optional>
 #include <math.h>
@@ -11,27 +11,26 @@ float dotProduct(sf::Vector2f a, sf::Vector2f b) {
     return a.x * b.x + a.y * b.y;
 }
 
-sf::Vector2f Collider::updatePositionToResolveCollision(Collider* other) {
+sf::Vector2f ConvexShapeCollider::updatePositionToResolveCollision(ConvexShapeCollider* other) {
     auto result = this->collidesWith(other);
 
     if (get<0>(result)) {
         auto movement = get<0>(get<1>(result).value());
 
         movement *= get<1>(get<1>(result).value());
-        movement *= -1.1f;
+        movement *= 1.01f;
 
         this->shape.move(movement);
 
         if (get<0>(this->collidesWith(other))) {
-            movement *= -1.0f;
-            this->shape.move(movement*2.0f);
+            this->shape.move(movement*-2.0f);
         }
     }
 
     return this->shape.getPosition();
 }
 
-std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> Collider::collidesWith(Collider* other) {
+std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> ConvexShapeCollider::collidesWith(ConvexShapeCollider* other) {
     auto thisToOther = this->SATCollision(other);
     auto otherToThis = other->SATCollision(this);
 
@@ -50,7 +49,7 @@ std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> Collider::colli
     }
 }
 
-std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> Collider::SATCollision(Collider* other) {
+std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> ConvexShapeCollider::SATCollision(ConvexShapeCollider* other) {
     auto thisTransform = this->shape.getTransform();
 
     sf::Vector2f MTV;

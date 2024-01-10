@@ -13,3 +13,8 @@
 
 ### Build (on Windows)
 # TODO
+- [ ] Colisons
+    - [ ] Circle - Circle
+    - [ ] Line - Circle
+    - [ ] Convex - Circle
+    - [ ] Line - Convex

@@ -20,7 +20,7 @@ struct Walls {
     std::vector<std::pair<glm::vec2, glm::vec2>> walls;
 };
 
-using CollisionQuery = flecs::query<Collider, Walls>;
+using CollisionQuery = flecs::query<ConvexShapeCollider, Walls>;
 using WallsQuery = flecs::query<Walls>;
 
 struct Attacks
