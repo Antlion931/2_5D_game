@@ -74,6 +74,12 @@ std::tuple<sf::Vector2f, sf::Vector2f> positionOfABToResolveCollision(CircleColl
     return std::make_tuple(a_position, b_position);
 }
 
+std::optional<sf::Vector2f> pointOfIntersection(LineCollider* a, LineCollider* b) {
+    //TODO
+    
+    return std::nullopt;
+}
+
 std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> ConvexShapeCollider::collidesWith(ConvexShapeCollider* other) {
     auto thisToOther = this->SATCollision(other);
     auto otherToThis = other->SATCollision(this);
