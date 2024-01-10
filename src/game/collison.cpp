@@ -11,8 +11,10 @@ float dotProduct(sf::Vector2f a, sf::Vector2f b) {
     return a.x * b.x + a.y * b.y;
 }
 
-sf::Vector2f ConvexShapeCollider::updatePositionToResolveCollision(ConvexShapeCollider* other) {
-    auto result = this->collidesWith(other);
+sf::Vector2f positionOfAToResolveCollisionWithB(ConvexShapeCollider* a, ConvexShapeCollider* b) {
+    auto result = a->collidesWith(b);
+
+    auto positon = a->shape.getPosition();
 
     if (get<0>(result)) {
         auto movement = get<0>(get<1>(result).value());
@@ -20,14 +22,56 @@ sf::Vector2f ConvexShapeCollider::updatePositionToResolveCollision(ConvexShapeCo
         movement *= get<1>(get<1>(result).value());
         movement *= 1.01f;
 
-        this->shape.move(movement);
+        a->shape.move(movement);
 
-        if (get<0>(this->collidesWith(other))) {
-            this->shape.move(movement*-2.0f);
+        if (get<0>(a->collidesWith(b))) {
+            a->shape.move(movement*-2.0f);
         }
+
+        auto buffor = a->shape.getPosition();
+        a->shape.setPosition(positon);
+        positon = buffor;
     }
 
-    return this->shape.getPosition();
+    return positon;
+}
+
+sf::Vector2f positionOfAToResolveCollisionWithB(CircleCollider* a, ConvexShapeCollider* b) {
+    //TODO
+    
+    return a->shape.getPosition();
+}
+
+std::tuple<sf::Vector2f, sf::Vector2f> positionOfABToResolveCollision(CircleCollider* a, CircleCollider* b) {
+    auto result = a->collidesWith(b);
+
+    auto a_positon = a->shape.getPosition();
+    auto b_positon = b->shape.getPosition();
+
+    if (get<0>(result)) {
+        auto movement = get<0>(get<1>(result).value());
+
+        movement *= get<1>(get<1>(result).value());
+        movement *= 1.01f;
+
+        a->shape.move(movement*0.5f);
+        b->shape.move(movement*-0.5f);
+
+        if (get<0>(a->collidesWith(b))) {
+            a->shape.move(movement*-1.0f);
+            b->shape.move(movement*1.0f);
+        }
+
+        auto buffor = a->shape.getPosition();
+        a->shape.setPosition(a_positon);
+        a_positon = buffor;
+
+        buffor = b->shape.getPosition();
+        b->shape.setPosition(b_positon);
+        b_positon = buffor;
+    }
+
+    return std::make_tuple(a_positon, b_positon);
 }
 
 std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> ConvexShapeCollider::collidesWith(ConvexShapeCollider* other) {
@@ -104,5 +148,58 @@ std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> ConvexShapeColl
     }
 
     return std::make_tuple(true, std::make_tuple(MTV, minOverlap));
+}
+
+std::tuple<bool, std::optional<float>> ConvexShapeCollider::collidesWith(LineCollider* other) {
+    //TODO
+
+    return std::make_tuple(false, std::nullopt);
+}
+
+std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> ConvexShapeCollider::collidesWith(CircleCollider* other) {
+    //TODO
+
+    return std::make_tuple(false, std::nullopt);
+}
+
+std::tuple<bool, std::optional<float>> LineCollider::collidesWith(ConvexShapeCollider* other) {
+    //TODO
+
+    return std::make_tuple(false, std::nullopt);
+}
+
+std::tuple<bool, std::optional<float>> LineCollider::collidesWith(CircleCollider* other) {
+    //TODO
+
+    return std::make_tuple(false, std::nullopt);
+}
+
+std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> CircleCollider::collidesWith(ConvexShapeCollider* other) {
+    //TODO
+
+    return std::make_tuple(false, std::nullopt);
+}
+
+std::tuple<bool, std::optional<float>> CircleCollider::collidesWith(LineCollider* other) {
+    //TODO
+
+    return std::make_tuple(false, std::nullopt);
+}
+
+std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> CircleCollider::collidesWith(CircleCollider* other) {
+    this->shape.getPosition();
+    other->shape.getPosition();
+
+    float distance = sqrt(pow(this->shape.getPosition().x - other->shape.getPosition().x, 2) + pow(this->shape.getPosition().y - other->shape.getPosition().y, 2));
+
+    if (distance < this->shape.getRadius() + other->shape.getRadius()) {
+        sf::Vector2f MTV = this->shape.getPosition() - other->shape.getPosition();
+        float magnitude = sqrt(MTV.x * MTV.x + MTV.y * MTV.y);
+        MTV /= magnitude;
+
+        return std::make_tuple(true, std::make_tuple(MTV, this->shape.getRadius() + other->shape.getRadius() - distance));
+    } else {
+        return std::make_tuple(false, std::nullopt);
+    }
 }
 

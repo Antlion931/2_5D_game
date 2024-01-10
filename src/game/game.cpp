@@ -556,7 +556,7 @@ void run()
             flecs::entity e1 = it.entity(i);
 
             q->each([&](flecs::entity e2, ConvexShapeCollider& r2, Walls& w) {
-                    auto position = r1.updatePositionToResolveCollision(&r2);
+                    auto position = positionOfAToResolveCollisionWithB(&r1, &r2);
                     p1.x = position.x;
                     p1.y = position.y;
             });

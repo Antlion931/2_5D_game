@@ -24,6 +24,32 @@ ConvexShapeCollider wall_collider() {
     return ConvexShapeCollider{collider};
 }
 
+TEST(collision, circle_on_circle_collision)
+{
+    sf::CircleShape circle1{10};
+    sf::CircleShape circle2{10};
+
+    circle1.setPosition(sf::Vector2f{0, 0});
+    circle2.setPosition(sf::Vector2f{5, 5});
+
+
+    auto cc1 = CircleCollider{circle1};
+    auto cc2 = CircleCollider{circle2};
+
+    auto result = cc1.collidesWith(&cc2);
+
+    EXPECT_TRUE(get<0>(result));
+
+    auto positions = positionOfABToResolveCollision(&cc1, &cc2);
+
+    cc1.shape.setPosition(get<0>(positions));
+    cc2.shape.setPosition(get<1>(positions));
+
+    result = cc1.collidesWith(&cc2);
+
+    EXPECT_FALSE(get<0>(result));
+}
+
 TEST(collision, player_on_right_eage_of_wall)
 {
     auto player = player_collider();
@@ -37,7 +63,9 @@ TEST(collision, player_on_right_eage_of_wall)
 
     EXPECT_TRUE(get<0>(result));
 
-    player.updatePositionToResolveCollision(&wall);
+    auto position = positionOfAToResolveCollisionWithB(&player, &wall);
+
+    player.shape.setPosition(position);
 
     result = player.collidesWith(&wall);
 
@@ -69,14 +97,16 @@ TEST(collision, player_on_left_eage_of_wall)
 
     EXPECT_TRUE(get<0>(result));
 
-    player.updatePositionToResolveCollision(&wall);
+    auto position = positionOfAToResolveCollisionWithB(&player, &wall);
+
+    player.shape.setPosition(position);
 
     result = player.collidesWith(&wall);
 
     EXPECT_FALSE(get<0>(result));
 }
 
-TEST(collison, player_on_bottom_eage_of_wall)
+TEST(collision, player_on_bottom_eage_of_wall)
 {
     auto player = player_collider();
     auto wall = wall_collider();
@@ -89,7 +119,9 @@ TEST(collison, player_on_bottom_eage_of_wall)
 
     EXPECT_TRUE(get<0>(result));
 
-    player.updatePositionToResolveCollision(&wall);
+    auto position = positionOfAToResolveCollisionWithB(&player, &wall);
+
+    player.shape.setPosition(position);
 
     result = player.collidesWith(&wall);
 
@@ -97,7 +129,7 @@ TEST(collison, player_on_bottom_eage_of_wall)
 
 }
 
-TEST(collison, player_on_top_eage_of_wall)
+TEST(collision, player_on_top_eage_of_wall)
 {
     auto player = player_collider();
     auto wall = wall_collider();
@@ -110,7 +142,9 @@ TEST(collison, player_on_top_eage_of_wall)
 
     EXPECT_TRUE(get<0>(result));
 
-    player.updatePositionToResolveCollision(&wall);
+    auto position = positionOfAToResolveCollisionWithB(&player, &wall);
+
+    player.shape.setPosition(position);
 
     result = player.collidesWith(&wall);
 
