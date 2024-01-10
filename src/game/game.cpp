@@ -559,6 +559,8 @@ void run()
                     auto position = positionOfAToResolveCollisionWithB(&r1, &r2);
                     p1.x = position.x;
                     p1.y = position.y;
+                    //Update collider position as well so other collision will no respect that
+                    r1.shape.setPosition(position.x, position.y);
             });
         });
 

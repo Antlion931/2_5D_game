@@ -14,7 +14,7 @@ float dotProduct(sf::Vector2f a, sf::Vector2f b) {
 sf::Vector2f positionOfAToResolveCollisionWithB(ConvexShapeCollider* a, ConvexShapeCollider* b) {
     auto result = a->collidesWith(b);
 
-    auto positon = a->shape.getPosition();
+    auto position = a->shape.getPosition();
 
     if (get<0>(result)) {
         auto movement = get<0>(get<1>(result).value());
@@ -29,11 +29,11 @@ sf::Vector2f positionOfAToResolveCollisionWithB(ConvexShapeCollider* a, ConvexSh
         }
 
         auto buffor = a->shape.getPosition();
-        a->shape.setPosition(positon);
-        positon = buffor;
+        a->shape.setPosition(position);
+        position = buffor;
     }
 
-    return positon;
+    return position;
 }
 
 sf::Vector2f positionOfAToResolveCollisionWithB(CircleCollider* a, ConvexShapeCollider* b) {
@@ -45,8 +45,8 @@ sf::Vector2f positionOfAToResolveCollisionWithB(CircleCollider* a, ConvexShapeCo
 std::tuple<sf::Vector2f, sf::Vector2f> positionOfABToResolveCollision(CircleCollider* a, CircleCollider* b) {
     auto result = a->collidesWith(b);
 
-    auto a_positon = a->shape.getPosition();
-    auto b_positon = b->shape.getPosition();
+    auto a_position = a->shape.getPosition();
+    auto b_position = b->shape.getPosition();
 
     if (get<0>(result)) {
         auto movement = get<0>(get<1>(result).value());
@@ -63,15 +63,15 @@ std::tuple<sf::Vector2f, sf::Vector2f> positionOfABToResolveCollision(CircleColl
         }
 
         auto buffor = a->shape.getPosition();
-        a->shape.setPosition(a_positon);
-        a_positon = buffor;
+        a->shape.setPosition(a_position);
+        a_position = buffor;
 
         buffor = b->shape.getPosition();
-        b->shape.setPosition(b_positon);
-        b_positon = buffor;
+        b->shape.setPosition(b_position);
+        b_position = buffor;
     }
 
-    return std::make_tuple(a_positon, b_positon);
+    return std::make_tuple(a_position, b_position);
 }
 
 std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> ConvexShapeCollider::collidesWith(ConvexShapeCollider* other) {
