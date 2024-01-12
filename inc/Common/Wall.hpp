@@ -9,7 +9,7 @@ enum class TextureMode : unsigned int
     RepeatMirrored
 };
 
-TextureMode& operator++(TextureMode& mode) {
+static TextureMode& operator++(TextureMode& mode) {
     switch (mode) {
         case TextureMode::Stretch:
             mode = TextureMode::Repeat;
@@ -25,7 +25,7 @@ TextureMode& operator++(TextureMode& mode) {
     return mode;
 }
 
-TextureMode& operator--(TextureMode& mode) {
+static TextureMode& operator--(TextureMode& mode) {
     switch (mode) {
         case TextureMode::Stretch:
             mode = TextureMode::RepeatMirrored;
@@ -41,7 +41,7 @@ TextureMode& operator--(TextureMode& mode) {
     return mode;
 }
 
-std::string textureModeToString(TextureMode mode)
+static std::string textureModeToString(TextureMode mode)
 {
     switch (mode)
     {

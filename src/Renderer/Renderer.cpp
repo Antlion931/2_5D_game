@@ -24,42 +24,49 @@ namespace {
     constexpr float PI = 3.14159265358979323846f;
 }
 
-Renderer::Renderer(sf::RenderWindow& window): m_window(window)
-    {
-        if (glewInit() != GLEW_OK)
-            throw std::runtime_error("Failed to initialize GLEW");
-
-        std::cout << "LOG: OpenGL Version: " << glGetString(GL_VERSION) << std::endl;   // TODO: Logging utility
-
-        shader = new Shader("resources/shaders/walls.glsl");
-        shader3d = new Shader("resources/shaders/wall3d.glsl");
-    }
-
-void Renderer::render(WallsQuery* query) noexcept
+Renderer::Renderer(GLFWwindow& window): m_window(window)
 {
-    m_window.setActive(true);
+    glEnable(GL_DEPTH_TEST);
+    m_wallShader = std::make_unique<Shader>("resources/shaders/wall3d.glsl");
+
+    m_groundShader = std::make_unique<Shader>("resources/shaders/ground.glsl");
+
+    const float vertices[] = {
+        -100000.0f, -1.0f, -100000.0f,
+        -100000.0f, -1.0f, 100000.0f,
+        100000.0f, -1.0f, 100000.0f,
+        100000.0f, -1.0f, -100000.0f
+    };
+
+    m_groundVertexBuffer = std::make_unique<VertexBuffer>(vertices, 12 * sizeof(float));
+    m_groundVertexArray = std::make_unique<VertexArray>();
+
+    VertexBufferLayout layout;
+    layout.Push<float>(3);
+
+    m_groundVertexArray->AddBuffer(*m_groundVertexBuffer, layout);
+}
+
+void Renderer::render() noexcept
+{
+    // m_window.setActive(true);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (m_context.draw3D)
-        draw3D(query);
+        draw3D();
     else
-        draw2D(query);
+        draw2D();
 
     drawHUD();
 
-    m_window.setActive(false);
+    // m_window.setActive(false);
 }
 
 void Renderer::moveCamera(const glm::vec2& movement) noexcept
 {
-    const float angle = m_camera.rotation.x - PI / 2.f;
-
-    const float dX = movement.x * cos(angle) - movement.y * sin(angle);
-    const float dY = movement.x * sin(angle) + movement.y * cos(angle);
-
-    m_camera.position += glm::vec2(dX, dY);
+    m_camera.position -= movement;
 }
 
 void Renderer::setCamera(Position cp) noexcept
@@ -70,12 +77,6 @@ void Renderer::setCamera(Position cp) noexcept
 
 void Renderer::rotateCamera(const glm::vec4& rotation) noexcept
 {
-    if (rotation.y != 0.f || rotation.z != 0.f || rotation.w != 1.f)
-    {
-        std::cout << "LOG: Renderer::rotateCamera() - Rotation around Y and Z axis is not supported, ignoring" << std::endl;
-        return;
-    }
-
     m_camera.rotation += rotation;
 
     if (m_camera.rotation.x > 2.f * PI)
@@ -144,238 +145,256 @@ void Renderer::toggleSettings(Settings settings) noexcept
     return -1;
 }
 
-// TODO: Rewrite in modern OpenGL
-void Renderer::draw3D(WallsQuery* query) noexcept
+void Renderer::load(const Level& level) noexcept
 {
-    const float fov = 90.f / 180.f * PI;
-    const float halfFov = fov / 2.f;
+    const auto& walls = level.static_walls;
+    std::cout << walls.size() << std::endl;
 
-    const uint rayCount = m_window.getSize().x / pixelsPerRay;
+    const float groundHeight = 0.0f;
 
-    const float angleBetweenRays = fov / rayCount;
+    std::vector<float> vertices;
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0.f, m_window.getSize().x, m_window.getSize().y, 0.f, -1.f, 1.f);
-
-    // Celling
-    glBegin(GL_QUADS);
-        glColor3f(0.6f, 0.6f, 0.6f);
-        glVertex2f(0.f, 0.f);
-        glVertex2f(m_window.getSize().x, 0.f);
-        glVertex2f(m_window.getSize().x, m_window.getSize().y / 2.f);
-        glVertex2f(0.f, m_window.getSize().y / 2.f);
-    glEnd();
-
-    // Floor
-    glBegin(GL_QUADS);
-        glColor3f(0.3f, 0.3f, 0.3f);
-        glVertex2f(0.f, m_window.getSize().y / 2.f);
-        glVertex2f(m_window.getSize().x, m_window.getSize().y / 2.f);
-        glVertex2f(m_window.getSize().x, m_window.getSize().y);
-        glVertex2f(0.f, m_window.getSize().y);
-    glEnd();
-
-    for (uint i = 0; i < rayCount; i++)
+    for (const auto& wall : walls)
     {
-        const float angle = m_camera.rotation.x - halfFov + i * angleBetweenRays + angleBetweenRays / 2.f;
+        vertices.push_back(wall.a.x);
+        vertices.push_back(wall.a.y);
+        vertices.push_back(groundHeight);
 
-        const float dX = cos(angle);
-        const float dY = sin(angle);
+        vertices.push_back(wall.b.x);
+        vertices.push_back(wall.b.y);
+        vertices.push_back(groundHeight);
 
-        float distance = -1.f;
-        glm::vec2 closestHit = {0.f, 0.f};
+        vertices.push_back(wall.b.x);
+        vertices.push_back(wall.b.y);
+        vertices.push_back(wall.height);
 
-
-        query->each([&](Walls& walls) {
-            for (const auto& wall : walls.walls)
-            {
-                const glm::vec2 p = m_camera.position;
-                const glm::vec2 r = {dX, dY};
-
-                const glm::vec2 q = wall.first;
-                const glm::vec2 s = wall.second - wall.first;
-
-                const float t = cross(q - p, s) / cross(r, s);
-
-                if (t >= 0.f)
-                {
-                    const float u = cross(q - p, r) / cross(r, s);
-
-                    if (u >= 0.f && u <= 1.f)
-                    {
-                        const glm::vec2 hit = q + u * s;
-
-                        const float newDistance = glm::length(hit - m_camera.position);
-
-                        if (distance == -1.f || newDistance < distance)
-                        {
-                            distance = newDistance;
-                            closestHit = hit;
-                        }
-                    }
-                }
-            }
-        });
-
-        if (distance != -1.f)
-        {
-            auto pow2([](float x) { return x * x; });
-            auto clamp([](float x, float min, float max) { return x < min ? min : (x > max ? max : x); });
-            float color = pow2(1.f - clamp(distance / 150.f, 0.f, 1.f));
-                    
-            const float height = m_window.getSize().y;
-            const float center = m_window.getSize().x / 2.f;
-            const float wallHeight = height / distance * 8.f;
-            glBegin(GL_QUADS);
-                glOrtho(0.f, m_window.getSize().x, m_window.getSize().y, 0.f, -1.f, 1.f);
-                glColor3f(color, 0.f, 0.f);
-                glVertex2f(i * pixelsPerRay, height / 2.f - wallHeight / 2.f);
-                glVertex2f(i * pixelsPerRay + pixelsPerRay, height / 2.f - wallHeight / 2.f);
-                glVertex2f(i * pixelsPerRay + pixelsPerRay, height / 2.f + wallHeight / 2.f);
-                glVertex2f(i * pixelsPerRay, height / 2.f + wallHeight / 2.f);
-            glEnd();
-        }
+        vertices.push_back(wall.a.x);
+        vertices.push_back(wall.a.y);
+        vertices.push_back(wall.height);
     }
+
+    std::vector<uint> indices;
+    uint offset = 0;
+
+    for (const auto& wall : walls)
+    {
+        indices.push_back(offset + 0);
+        indices.push_back(offset + 1);
+        indices.push_back(offset + 2);
+
+        indices.push_back(offset + 2);
+        indices.push_back(offset + 3);
+        indices.push_back(offset + 0);
+
+        offset += 4;
+    }
+
+
+    m_wallVertexBuffer = std::make_unique<VertexBuffer>(vertices.data(), vertices.size() * sizeof(float));
+    m_wallVertexArray = std::make_unique<VertexArray>();
+
+    VertexBufferLayout layout;
+    layout.Push<float>(3);
+
+    m_wallVertexArray->AddBuffer(*m_wallVertexBuffer, layout);
+
+    m_wallIndexBuffer = std::make_unique<IndexBuffer>(indices.data(), indices.size());
+}
+
+// TODO: Rewrite in modern OpenGL
+void Renderer::draw3D() noexcept
+{
+    glClearColor(0.2f, 0.3f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glm::mat4 model = glm::mat4(1.0f);
+
+    glm::vec3 cameraPos = glm::vec3(m_camera.position.x, 2.0f, m_camera.position.y);
+    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+    cameraFront = glm::rotate(glm::mat4{1.0f}, m_camera.rotation.x, cameraUp) * glm::vec4{cameraFront, 1.0f};
+
+
+    glm::mat4 view = glm::lookAt(
+        cameraPos,
+        cameraPos + cameraFront,
+        cameraUp
+    );
+    // view = glm::translate(view, glm::vec3(-m_camera.position.x, -2.0f, -m_camera.position.y));
+    // view = glm::rotate(view, m_camera.rotation.x, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10000.0f);
+
+    // Ground
+
+    m_groundShader->Bind();
+    m_groundShader->SetUniformM("uModel", model);
+    m_groundShader->SetUniformM("uView", view);
+    m_groundShader->SetUniformM("uProjection", proj);
+
+    m_groundVertexArray->Bind();
+
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    m_groundVertexArray->Unbind();
+    m_groundShader->Unbind();
+
+    // Walls
+    m_wallShader->Bind();
+    m_wallShader->SetUniform("uCamPos", cameraPos.x, cameraPos.y, cameraPos.z);
+    m_wallShader->SetUniformM("uModel", model);
+    m_wallShader->SetUniformM("uView", view);
+    m_wallShader->SetUniformM("uProjection", proj);
+
+    m_wallVertexArray->Bind();
+    m_wallIndexBuffer->Bind();
+
+    glDrawElements(GL_TRIANGLES, m_wallIndexBuffer->GetCount(), GL_UNSIGNED_INT, nullptr);
+
+    m_wallIndexBuffer->Unbind();
+    m_wallVertexArray->Unbind();
+    m_wallShader->Unbind();
 }
 
 
-void Renderer::draw2D(WallsQuery *query) noexcept
+void Renderer::draw2D() noexcept
 {
-    query->each([&](Walls& walls) {
-        for (const auto& wall : walls.walls)
-        {
-            VertexBuffer vb(&wall.first, 2 * sizeof(wall.first));
-            VertexBufferLayout layout;
-            layout.Push<float>(2);
+    // static std::unique_ptr<Shader> shader = std::make_unique<Shader>("resources/shaders/walls.glsl");
+    // query->each([&](Walls& walls) {
+    //     for (const auto& wall : walls.walls)
+    //     {
+    //         VertexBuffer vb(&wall.first, 2 * sizeof(wall.first));
+    //         VertexBufferLayout layout;
+    //         layout.Push<float>(2);
 
-            VertexArray va;
-            va.AddBuffer(vb, layout);
-            va.Bind();
-            shader->Bind(); // FIXME: You can no bind in a query
-            shader->SetUniform("u_color", 1.0f, 1.0f, 1.0f, 1.0f);
-            shader->SetUniformM("u_projection", proj);
-            shader->SetUniform("u_PlayerPos", m_camera.position.x, m_camera.position.y);
-            shader->SetUniform("u_PlayerRot", m_camera.rotation.x);
+    //         VertexArray va;
+    //         va.AddBuffer(vb, layout);
+    //         va.Bind();
+    //         shader->Bind();
+    //         shader->SetUniform("u_color", 1.0f, 1.0f, 1.0f, 1.0f);
+    //         shader->SetUniformM("u_projection", proj);
+    //         shader->SetUniform("u_PlayerPos", m_camera.position.x, m_camera.position.y);
+    //         shader->SetUniform("u_PlayerRot", m_camera.rotation.x);
 
 
-            glDrawArrays(GL_LINES, 0, 2);
+    //         glDrawArrays(GL_LINES, 0, 2);
 
-            va.Unbind();
-            shader->Unbind();
-        }
-    });
+    //         va.Unbind();
+    //         shader->Unbind();
+    //     }
+    // });
 
     
-    // Player
-    {
-        const float playerLength = 2.0f;
+    // // Player
+    // {
+    //     const float playerLength = 2.0f;
 
-        const float oX = m_camera.position.x;
-        const float oY = m_camera.position.y;
+    //     const float oX = m_camera.position.x;
+    //     const float oY = m_camera.position.y;
 
-        const float angle = m_camera.rotation.x;
+    //     const float angle = m_camera.rotation.x;
 
-        const float dX = playerLength * cos(angle);
-        const float dY = playerLength * sin(angle);
+    //     const float dX = playerLength * cos(angle);
+    //     const float dY = playerLength * sin(angle);
 
-        const float x1 = oX + dX;
-        const float y1 = oY + dY;
+    //     const float x1 = oX + dX;
+    //     const float y1 = oY + dY;
 
-        const float playerVertices[] = {
-            oX, oY,
-            x1, y1
-        };
+    //     const float playerVertices[] = {
+    //         oX, oY,
+    //         x1, y1
+    //     };
 
-        VertexBuffer vb(playerVertices, 4 * sizeof(float));
-        VertexBufferLayout layout;
-        layout.Push<float>(2);
+    //     VertexBuffer vb(playerVertices, 4 * sizeof(float));
+    //     VertexBufferLayout layout;
+    //     layout.Push<float>(2);
 
-        VertexArray va;
-        va.AddBuffer(vb, layout);
+    //     VertexArray va;
+    //     va.AddBuffer(vb, layout);
 
-        shader->Bind();
-        shader->SetUniform("u_color", 1.0f, 0.0f, 0.0f, 1.0f);
-        shader->SetUniformM("u_projection", proj);
-        va.Bind();
+    //     shader->Bind();
+    //     shader->SetUniform("u_color", 1.0f, 0.0f, 0.0f, 1.0f);
+    //     shader->SetUniformM("u_projection", proj);
+    //     va.Bind();
 
-        glDrawArrays(GL_LINES, 0, 2);
+    //     glDrawArrays(GL_LINES, 0, 2);
 
-        va.Unbind();
-        shader->Unbind();
-    }
+    //     va.Unbind();
+    //     shader->Unbind();
+    // }
 
-        const float fov = 90.f / 180.f * PI;
-    const float halfFov = fov / 2.f;
+    //     const float fov = 90.f / 180.f * PI;
+    // const float halfFov = fov / 2.f;
 
-    const uint rayCount = m_window.getSize().x / pixelsPerRay;
+    // const uint rayCount = m_window.getSize().x / pixelsPerRay;
 
-    const float angleBetweenRays = fov / rayCount;
+    // const float angleBetweenRays = fov / rayCount;
 
-        for (uint i = 0; i < rayCount; i++)
-    {
-        const float angle = m_camera.rotation.x - halfFov + i * angleBetweenRays + angleBetweenRays / 2.f;
+    //     for (uint i = 0; i < rayCount; i++)
+    // {
+    //     const float angle = m_camera.rotation.x - halfFov + i * angleBetweenRays + angleBetweenRays / 2.f;
 
-        const float dX = cos(angle);
-        const float dY = sin(angle);
+    //     const float dX = cos(angle);
+    //     const float dY = sin(angle);
 
-        float distance = -1.f;
-        glm::vec2 closestHit = {0.f, 0.f};
+    //     float distance = -1.f;
+    //     glm::vec2 closestHit = {0.f, 0.f};
 
-            query->each([&](Walls& walls) {
-            for (const auto& wall : walls.walls)
-            {
-                const glm::vec2 p = m_camera.position;
-                const glm::vec2 r = {dX, dY};
+    //         query->each([&](Walls& walls) {
+    //         for (const auto& wall : walls.walls)
+    //         {
+    //             const glm::vec2 p = m_camera.position;
+    //             const glm::vec2 r = {dX, dY};
 
-                const glm::vec2 q = wall.first;
-                const glm::vec2 s = wall.second - wall.first;
+    //             const glm::vec2 q = wall.first;
+    //             const glm::vec2 s = wall.second - wall.first;
 
-                const float t = cross(q - p, s) / cross(r, s);
+    //             const float t = cross(q - p, s) / cross(r, s);
 
-                if (t >= 0.f)
-                {
-                    const float u = cross(q - p, r) / cross(r, s);
+    //             if (t >= 0.f)
+    //             {
+    //                 const float u = cross(q - p, r) / cross(r, s);
 
-                    if (u >= 0.f && u <= 1.f)
-                    {
-                        const glm::vec2 hit = q + u * s;
+    //                 if (u >= 0.f && u <= 1.f)
+    //                 {
+    //                     const glm::vec2 hit = q + u * s;
 
-                        const float newDistance = glm::length(hit - m_camera.position);
+    //                     const float newDistance = glm::length(hit - m_camera.position);
 
-                        if (distance == -1.f || newDistance < distance)
-                        {
-                            distance = newDistance;
-                            closestHit = hit;
-                        }
-                    }
-                }
-            }
-        });
+    //                     if (distance == -1.f || newDistance < distance)
+    //                     {
+    //                         distance = newDistance;
+    //                         closestHit = hit;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     });
 
-            if (distance != -1.f)
-        {
-            const float vertices[] = {
-                m_camera.position.x, m_camera.position.y,
-                closestHit.x, closestHit.y
-            };
+    //         if (distance != -1.f)
+    //     {
+    //         const float vertices[] = {
+    //             m_camera.position.x, m_camera.position.y,
+    //             closestHit.x, closestHit.y
+    //         };
 
-            VertexBuffer vb(vertices, 4 * sizeof(float));
-            VertexBufferLayout layout;
-            layout.Push<float>(2);
+    //         VertexBuffer vb(vertices, 4 * sizeof(float));
+    //         VertexBufferLayout layout;
+    //         layout.Push<float>(2);
 
-            VertexArray va;
-            va.AddBuffer(vb, layout);
+    //         VertexArray va;
+    //         va.AddBuffer(vb, layout);
 
-            shader->Bind();
-            shader->SetUniform("u_color", 0.0f, 1.0f, 0.0f, 1.0f);
-            shader->SetUniformM("u_projection", proj);
-            va.Bind();
+    //         shader->Bind();
+    //         shader->SetUniform("u_color", 0.0f, 1.0f, 0.0f, 1.0f);
+    //         shader->SetUniformM("u_projection", proj);
+    //         va.Bind();
 
-            glDrawArrays(GL_LINES, 0, 2);
+    //         glDrawArrays(GL_LINES, 0, 2);
 
-            va.Unbind();
-            shader->Unbind();
-        }
-    }
+    //         va.Unbind();
+    //         shader->Unbind();
+    //     }
+    // }
 }

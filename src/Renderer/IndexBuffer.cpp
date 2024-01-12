@@ -1,8 +1,8 @@
 #include "Renderer/IndexBuffer.hpp"
 
-#include <GL/glew.h>
+#include <glad/gl.h>
 
-IndexBuffer::IndexBuffer(const uint* data, const uint count) {
+IndexBuffer::IndexBuffer(const uint* data, const uint count) : m_Count(count) {
     glGenBuffers(1, &m_id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint), data, GL_STATIC_DRAW);

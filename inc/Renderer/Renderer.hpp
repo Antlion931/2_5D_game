@@ -1,25 +1,30 @@
 #pragma once
 
-#include <GL/glew.h>
-
-#include <SFML/Window.hpp>
-#include <SFML/Graphics.hpp>
-#include <SFML/OpenGL.hpp>
+#include <glad/gl.h>
+#include <GLFW/glfw3.h>
 
 #include "Renderer/Shader.hpp"
+#include "Renderer/VertexArray.hpp"
+#include "Renderer/VertexBuffer.hpp"
+#include "Renderer/IndexBuffer.hpp"
+
 #include "Game/GameComponents.hpp"
+
+#include "Common/Level.hpp"
+#include "Common/Log.hpp"
 
 class Renderer
 {
     public:
-        Renderer(sf::RenderWindow& window);
+        Renderer(GLFWwindow& window);
         ~Renderer() = default;
 
-        void render(WallsQuery* query) noexcept;
+        void render() noexcept;
         void moveCamera(const glm::vec2& movement) noexcept;
         void setCamera(Position cameraPosition) noexcept;
         void rotateCamera(const glm::vec4& rotation) noexcept;
         void resize(uint width, uint height) noexcept;
+        void load(const Level& level) noexcept;
 
         enum class Settings : uint
         {
@@ -31,13 +36,18 @@ class Renderer
         [[nodiscard]] int getSettings(Settings settings) const noexcept;
 
     private:
-        // TODO remove later
-        Shader* shader = nullptr;
-        Shader* player_shader = nullptr;
-        Shader* shader3d = nullptr;
+        // Static walls
+        std::unique_ptr<Shader> m_wallShader;
+        std::unique_ptr<VertexBuffer> m_wallVertexBuffer;
+        std::unique_ptr<VertexArray> m_wallVertexArray;
+        std::unique_ptr<IndexBuffer> m_wallIndexBuffer;
+        // Ground and ceiling
+        std::unique_ptr<Shader> m_groundShader;
+        std::unique_ptr<VertexBuffer> m_groundVertexBuffer;
+        std::unique_ptr<VertexArray> m_groundVertexArray;
         //
 
-        sf::RenderWindow& m_window;
+        GLFWwindow& m_window;
 
         enum class Quality : uint
         {
@@ -55,7 +65,7 @@ class Renderer
         } m_context;
 
         struct {
-            glm::vec2 position = {-1.0f, -1.0f};
+            glm::vec2 position = {-0.0f, -0.0f};
             glm::vec4 rotation = {0.0f, 0.0f, 0.0f, 1.0f};
         } m_camera;
 
@@ -63,10 +73,10 @@ class Renderer
         uint pixelsPerRay = 1;
 
         // Proper 3D rendering
-        void draw3D(WallsQuery *query) noexcept;
+        void draw3D() noexcept;
 
         // Draw in 2D for debugging purposes
-        void draw2D(WallsQuery *query) noexcept;
+        void draw2D() noexcept;
 
         // Do later when Prototype is done
         void drawHUD() noexcept

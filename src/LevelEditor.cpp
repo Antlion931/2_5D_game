@@ -4,9 +4,7 @@
 #include <ostream>
 #include <iterator>
 
-#include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
-#include <SFML/System.hpp>
+#include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
 
@@ -15,6 +13,7 @@
 #include "LevelEditor/State.hpp"
 
 #include "Common/Wall.hpp"
+#include "Common/Level.hpp"
 
 void create(std::vector<Wall>& walls, State& state)
 {
@@ -46,93 +45,34 @@ void create(std::vector<Wall>& walls, State& state)
     }
 }
 
-void load(std::vector<Wall>& walls, State& state)
+void load(Level& level, State& state)
 {
-    constexpr auto levels_path = std::string_view("levels/");
-
-    std::string fname;
+    std::string fileName;
 
     std::cout << std::format("Enter filename ({}): ", state.filename) << std::flush;
-    std::getline(std::cin, fname);
+    std::getline(std::cin, fileName);
 
-    if (!fname.empty())
-        state.filename = fname;
+    if (!fileName.empty())
+        state.filename = fileName;
 
-    std::cout << std::format("Loading {}{}...\n", levels_path, state.filename);
-
-    std::ifstream file(levels_path.data() + state.filename);
-
-    if (!file.is_open())
-    {
-        log("Failed to open file " + state.filename);
-
-        state.load = false;
-        return;
-    }
-
-    size_t wall_count = 0;
-    file >> wall_count;
-
-    walls.clear();
-    walls.reserve(wall_count);
-
-    for (size_t i = 0; i < wall_count; ++i)
-    {
-        Wall wall;
-
-        file >> wall.a.x >> wall.a.y >> wall.b.x >> wall.b.y >> wall.height >> wall.textureId;
-
-        unsigned int textureMode;
-        file >> textureMode;
-
-        wall.textureMode = static_cast<TextureMode>(textureMode);
-
-        walls.push_back(wall);
-    }
-
-    file.close();
+    level = loadLevel(state.filename);
 
     state.load = false;
-
-    log("Loaded " + state.filename);
 }
 
-void save(const std::vector<Wall>& walls, State& state)
+void save(const Level& level, State& state)
 {
-    constexpr auto levels_path = std::string_view("levels/");
-
-    std::string fname;
+    std::string fileName;
 
     std::cout << std::format("Enter filename ({}): ", state.filename) << std::flush;
-    std::getline(std::cin, fname);
+    std::getline(std::cin, fileName);
 
-    if (!fname.empty())
-        state.filename = fname;
+    if (!fileName.empty())
+        state.filename = fileName;
 
-    std::cout << std::format("Saving to {}{}...\n", levels_path, state.filename);
-    std::ofstream file(levels_path.data() + state.filename);
-
-    if (!file.is_open())
-    {
-        log("Failed to open file " + state.filename);
-
-        state.save = false;
-        return;
-    }
-
-    file << std::format("{}", walls.size()) << std::endl;
-
-    for (const Wall& wall : walls)
-    {
-        file << std::format("{} {} {} {} {} {} {}\n", 
-            wall.a.x, wall.a.y, wall.b.x, wall.b.y, wall.height, wall.textureId, static_cast<unsigned int>(wall.textureMode));
-    }
-
-    file.close();
+    saveLevel(level, state.filename);
 
     state.save = false;
-
-    log("Saved " + state.filename);
 }
 
 int main(int argc, char** argv)
@@ -149,17 +89,18 @@ int main(int argc, char** argv)
     view.setSize(window.getSize().x / state.zoom, window.getSize().y / state.zoom);
     window.setView(view);
 
-    std::vector<Wall> walls;
+    Level level;
+    auto& walls = level.static_walls;
 
     while (state.isRunning)
     {
         handleInput(window, state);
 
         if (state.load)
-            load(walls, state);
+            load(level, state);
 
         if (state.save)
-            save(walls, state);
+            save(level, state);
 
         if (state.create)
             create(walls, state);
