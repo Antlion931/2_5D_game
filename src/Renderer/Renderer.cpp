@@ -1,7 +1,7 @@
 #include "Renderer/Renderer.hpp"
 
 #include <flecs.h>
-#include "GameComponents.hpp"
+#include "Game/GameComponents.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

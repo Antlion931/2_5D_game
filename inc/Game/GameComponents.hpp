@@ -1,8 +1,10 @@
-#pragma once 
+#pragma once
+
 #include <vector>
 #include <glm/glm.hpp>
 #include <flecs.h>
-#include "collision.hpp"
+
+#include "Game/Collision.hpp"
 
 struct Position
 {

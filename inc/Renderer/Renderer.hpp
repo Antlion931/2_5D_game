@@ -7,7 +7,7 @@
 #include <SFML/OpenGL.hpp>
 
 #include "Renderer/Shader.hpp"
-#include "GameComponents.hpp"
+#include "Game/GameComponents.hpp"
 
 class Renderer
 {

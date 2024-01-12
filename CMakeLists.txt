@@ -29,9 +29,15 @@ find_package(glm REQUIRED)
 
 # Files setup
 
-file(GLOB_RECURSE MAIN_GAME "src/main.cpp" )
-file(GLOB_RECURSE GAME_SOURCES "src/game/**.cpp" )
-file(GLOB_RECURSE RENDERER_SOURCES "src/Renderer/**.cpp" )
+set(MAIN_GAME "src/25DGame.cpp")
+set(LEVEL_ED "src/LevelEditor.cpp")
+
+file(GLOB_RECURSE GAME_SOURCES "src/Game/**.cpp" )
+file(GLOB_RECURSE RENDERER_SOURCES "src/Renderer/**.cpp")
+
+set(HEADERS "inc")
+set(RESOURCES_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/inc)
+
 file(GLOB_RECURSE RESOURCES "resources/*")
 file(GLOB_RECURSE TESTS "tst/*.cpp")
 
@@ -43,12 +49,56 @@ add_subdirectory (flecs)
 
 add_subdirectory(ResourceLoader)
 
-# Executable setup
+# Game setup
 
-add_executable(${PROJECT_NAME} ${GAME_SOURCES} ${RENDERER_SOURCES} ${MAIN_GAME})
-target_include_directories(${PROJECT_NAME} PUBLIC inc ${CMAKE_CURRENT_BINARY_DIR}/inc)
-target_link_libraries(${PROJECT_NAME} sfml-graphics sfml-audio sfml-system sfml-window GL GLEW resources)
-target_link_libraries(${PROJECT_NAME} flecs_static)
+add_executable(${PROJECT_NAME} ${MAIN_GAME})
+
+target_include_directories(
+    ${PROJECT_NAME} PRIVATE
+        ${HEADERS}
+        ${RESOURCES_HEADERS}
+    )
+
+target_sources(
+    ${PROJECT_NAME} PRIVATE
+        ${GAME_SOURCES}
+        ${RENDERER_SOURCES}
+    )
+
+target_link_libraries(
+    ${PROJECT_NAME} PRIVATE
+        sfml-graphics 
+        sfml-audio 
+        sfml-system 
+        sfml-window 
+        GL 
+        GLEW 
+        resources 
+        flecs_static
+    )
+
+
+# Level editor
+
+add_executable(${PROJECT_NAME}_LE ${LEVEL_ED})
+
+target_include_directories(
+    ${PROJECT_NAME}_LE PRIVATE
+        ${HEADERS}
+        ${RESOURCES_HEADERS}
+    )
+
+target_sources(
+    ${PROJECT_NAME}_LE PRIVATE
+    )
+
+target_link_libraries(
+    ${PROJECT_NAME}_LE PRIVATE
+    sfml-graphics
+    sfml-audio
+    sfml-system
+    sfml-window
+    )
 
 # Tests setup
 
@@ -57,3 +107,7 @@ target_link_libraries(${PROJECT_NAME}_ut ${GTEST_BOTH_LIBRARIES})
 target_include_directories(${PROJECT_NAME}_ut PUBLIC inc ${CMAKE_CURRENT_BINARY_DIR}/inc)
 target_link_libraries(${PROJECT_NAME}_ut flecs sfml-graphics sfml-audio sfml-system sfml-window GL GLEW resources)
 target_link_libraries(${PROJECT_NAME}_ut flecs_static)
+
+# Makedir for levels
+
+file(MAKE_DIRECTORY levels)

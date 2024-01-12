@@ -1,5 +1,3 @@
-#include "game.hpp"
-#include "collision.hpp"
 #include <algorithm>
 #include <flecs.h>
 #include <SFML/Window.hpp>
@@ -10,7 +8,9 @@
 #include <memory>
 #include <iostream>
 
-#include "GameComponents.hpp"
+#include "Game/GameComponents.hpp"
+#include "Game/Game.hpp"
+#include "Game/Collision.hpp"
 
 std::unique_ptr<sf::RenderWindow> create_window(uint width = 800, uint height = 600, const std::string& title = "2_5D Renderer Demo", uint framerate = 60) noexcept
 {

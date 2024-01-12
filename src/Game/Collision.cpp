@@ -1,4 +1,3 @@
-#include "collision.hpp"
 #include <SFML/Graphics/ConvexShape.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics.hpp>
@@ -6,6 +5,8 @@
 #include <limits>
 #include <optional>
 #include <math.h>
+
+#include "Game/Collision.hpp"
 
 float dotProduct(sf::Vector2f a, sf::Vector2f b) {
     return a.x * b.x + a.y * b.y;

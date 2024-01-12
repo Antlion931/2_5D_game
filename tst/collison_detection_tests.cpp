@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <SFML/Graphics.hpp>
-#include "collision.hpp"
+#include "Game/Collision.hpp"
 
 Collider player_collider() {
     auto collider = sf::ConvexShape{4};
