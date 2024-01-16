@@ -6,6 +6,7 @@
 #include <limits>
 #include <optional>
 #include <math.h>
+#include <iostream>
 
 float dotProduct(sf::Vector2f a, sf::Vector2f b) {
     return a.x * b.x + a.y * b.y;
@@ -175,7 +176,9 @@ std::tuple<bool, std::optional<float>> LineCollider::collidesWith(ConvexShapeCol
 }
 
 std::tuple<bool, std::optional<float>> LineCollider::collidesWith(CircleCollider* other) {
-    //TODO
+    int length_up_to_center = dotProduct(this->end - this->start, other->shape.getPosition() - this->start);
+
+    std::cout << length_up_to_center << std::endl;
 
     return std::make_tuple(false, std::nullopt);
 }

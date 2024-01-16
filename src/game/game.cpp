@@ -305,7 +305,6 @@ void run()
 
     auto collider2 = sf::ConvexShape{3};
     
-    
     collider2.setPoint(0, sf::Vector2f{250, 220});
     collider2.setPoint(1, sf::Vector2f{220, 280});
     collider2.setPoint(2, sf::Vector2f{280, 280});
@@ -360,19 +359,16 @@ void run()
 
     wall12.set(ConvexShapeCollider{collider6}).set(Walls{walls});
 
-    collider = sf::ConvexShape{4};
-    collider.setPoint(0, sf::Vector2f{0, 0});
-    collider.setPoint(1, sf::Vector2f{0, 6});
-    collider.setPoint(2, sf::Vector2f{6, 6});
-    collider.setPoint(3, sf::Vector2f{6, 0});
-    collider.setFillColor(sf::Color(255, 0, 0, 100));
-    collider.setOutlineColor(sf::Color::Red);
-    collider.setOrigin(sf::Vector2f{3, 3});
+    sf::CircleShape player_collider = sf::CircleShape();
+    player_collider.setRadius(6);
+    player_collider.setFillColor(sf::Color(255, 0, 0, 100));
+    player_collider.setOutlineColor(sf::Color::Red);
+    player_collider.setOrigin(sf::Vector2f{3, 3});
     flecs::entity player {world.entity("Player")};
 
     player.set<Position>({200, 380, 270}).set<Player>({}).set<Health>({100.f});
 
-    player.set(ConvexShapeCollider{collider});
+    player.set(CircleCollider{player_collider});
 
     auto playerMoveSys = world.system<Player, Position>()
         .iter([](flecs::iter it, Player* player, Position* position)
