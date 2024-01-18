@@ -16,20 +16,20 @@ std::optional<sf::Vector2f> pointOfIntersection(LineCollider* a, LineCollider* b
 struct ConvexShapeCollider {
     sf::ConvexShape shape;
 
-    std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> collidesWith(ConvexShapeCollider* other);
+    std::optional<std::tuple<sf::Vector2f, float>> collidesWith(ConvexShapeCollider* other);
     //Warning, this will not work when the line doesn't intersect any edge of the shape
-    std::tuple<bool, std::optional<float>> collidesWith(LineCollider* other);
-    std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> collidesWith(CircleCollider* other);
+    std::optional<float> collidesWith(LineCollider* other);
+    std::optional<std::tuple<sf::Vector2f, float>> collidesWith(CircleCollider* other);
 
-    std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> SATCollision(ConvexShapeCollider* other);
+    std::optional<std::tuple<sf::Vector2f, float>> SATCollision(ConvexShapeCollider* other);
 };
 
 struct LineCollider {
     sf::Vector2f start;
     sf::Vector2f end;
 
-    std::tuple<bool, std::optional<float>> collidesWith(ConvexShapeCollider* other);
-    std::tuple<bool, std::optional<float>> collidesWith(CircleCollider* other);
+    std::optional<float> collidesWith(ConvexShapeCollider* other);
+    std::optional<float> collidesWith(CircleCollider* other);
 
     void updateLengthToResolveCollision(ConvexShapeCollider* other);
 };
@@ -38,7 +38,7 @@ struct CircleCollider {
     sf::CircleShape shape;
 
     //Warning, this will not work when the line doesn't intersect any edge of the shape
-    std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> collidesWith(ConvexShapeCollider* other);
-    std::tuple<bool, std::optional<float>> collidesWith(LineCollider* other);
-    std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> collidesWith(CircleCollider* other);
+    std::optional<std::tuple<sf::Vector2f, float>> collidesWith(ConvexShapeCollider* other);
+    std::optional<float> collidesWith(LineCollider* other);
+    std::optional<std::tuple<sf::Vector2f, float>> collidesWith(CircleCollider* other);
 };

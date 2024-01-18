@@ -17,15 +17,15 @@ sf::Vector2f positionOfAToResolveCollisionWithB(ConvexShapeCollider* a, ConvexSh
 
     auto position = a->shape.getPosition();
 
-    if (get<0>(result)) {
-        auto movement = get<0>(get<1>(result).value());
+    if (result.has_value()) {
+        auto movement = get<0>(result.value());
 
-        movement *= get<1>(get<1>(result).value());
+        movement *= get<1>(result.value());
         movement *= 1.01f;
 
         a->shape.move(movement);
 
-        if (get<0>(a->collidesWith(b))) {
+        if (a->collidesWith(b).has_value()) {
             a->shape.move(movement*-2.0f);
         }
 
@@ -49,16 +49,16 @@ std::tuple<sf::Vector2f, sf::Vector2f> positionOfABToResolveCollision(CircleColl
     auto a_position = a->shape.getPosition();
     auto b_position = b->shape.getPosition();
 
-    if (get<0>(result)) {
-        auto movement = get<0>(get<1>(result).value());
+    if (result.has_value()) {
+        auto movement = get<0>(result.value());
 
-        movement *= get<1>(get<1>(result).value());
+        movement *= get<1>(result.value());
         movement *= 1.01f;
 
         a->shape.move(movement*0.5f);
         b->shape.move(movement*-0.5f);
 
-        if (get<0>(a->collidesWith(b))) {
+        if (a->collidesWith(b).has_value()) {
             a->shape.move(movement*-1.0f);
             b->shape.move(movement*1.0f);
         }
@@ -76,31 +76,50 @@ std::tuple<sf::Vector2f, sf::Vector2f> positionOfABToResolveCollision(CircleColl
 }
 
 std::optional<sf::Vector2f> pointOfIntersection(LineCollider* a, LineCollider* b) {
-    //TODO
+    auto x1 = a->start.x;
+    auto y1 = a->start.y;
+    auto x2 = a->end.x;
+    auto y2 = a->end.y;
+
+    auto x3 = b->start.x;
+    auto y3 = b->start.y;
+    auto x4 = b->end.x;
+    auto y4 = b->end.y;
     
+    float uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+    float uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+
+
+    if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+        float intersectionX = x1 + (uA * (x2-x1));
+        float intersectionY = y1 + (uA * (y2-y1));
+
+        return std::make_optional(sf::Vector2f(intersectionX, intersectionY));
+    }
+
     return std::nullopt;
 }
 
-std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> ConvexShapeCollider::collidesWith(ConvexShapeCollider* other) {
+std::optional<std::tuple<sf::Vector2f, float>> ConvexShapeCollider::collidesWith(ConvexShapeCollider* other) {
     auto thisToOther = this->SATCollision(other);
     auto otherToThis = other->SATCollision(this);
 
-    if (!get<0>(thisToOther)) {
+    if (!thisToOther.has_value()) {
         return thisToOther;
     } 
 
-    if (!get<0>(otherToThis)) {
+    if (!otherToThis.has_value()) {
         return otherToThis;
     }
 
-    if (get<1>(get<1>(thisToOther).value()) <= get<1>(get<1>(otherToThis).value())) {
+    if (get<1>(thisToOther.value()) <= get<1>(otherToThis.value())) {
         return thisToOther;
     } else {
         return otherToThis;
     }
 }
 
-std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> ConvexShapeCollider::SATCollision(ConvexShapeCollider* other) {
+std::optional<std::tuple<sf::Vector2f, float>> ConvexShapeCollider::SATCollision(ConvexShapeCollider* other) {
     auto thisTransform = this->shape.getTransform();
 
     sf::Vector2f MTV;
@@ -145,7 +164,7 @@ std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> ConvexShapeColl
         float overlap = std::min(maxThis, maxOther) - std::max(minThis, minOther);
 
         if (overlap <= 0) {
-            return std::make_tuple(false, std::nullopt);
+            return std::nullopt;
         }
 
         if (overlap < minOverlap) {
@@ -154,48 +173,80 @@ std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> ConvexShapeColl
         }
     }
 
-    return std::make_tuple(true, std::make_tuple(MTV, minOverlap));
+    return std::make_tuple(MTV, minOverlap);
 }
 
-std::tuple<bool, std::optional<float>> ConvexShapeCollider::collidesWith(LineCollider* other) {
+std::optional<float> ConvexShapeCollider::collidesWith(LineCollider* other) {
+    std::optional<float> minDistance = std::nullopt;
+
+    for (int i = 0; i < this->shape.getPointCount(); i++) {
+        sf::Vector2f point1 = this->shape.getTransform().transformPoint(this->shape.getPoint(i));
+        sf::Vector2f point2 = this->shape.getTransform().transformPoint(this->shape.getPoint((i + 1) % this->shape.getPointCount()));
+
+        LineCollider lineCollider(point1, point2);
+
+        auto result = pointOfIntersection(&lineCollider, other);
+
+        if (result.has_value()) {
+            auto distance = sqrt(pow(other->start.x - result.value().x, 2) + pow(other->start.y - result.value().y, 2));
+
+            if (!minDistance.has_value() || distance < minDistance.value()) {
+                minDistance = std::make_optional(distance);
+            }
+        }
+    }
+
+    return minDistance;
+}
+
+std::optional<std::tuple<sf::Vector2f, float>> ConvexShapeCollider::collidesWith(CircleCollider* other) {
     //TODO
 
-    return std::make_tuple(false, std::nullopt);
+    return std::nullopt;
 }
 
-std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> ConvexShapeCollider::collidesWith(CircleCollider* other) {
+std::optional<float> LineCollider::collidesWith(ConvexShapeCollider* other) {
+    return other->collidesWith(this);
+}
+
+std::optional<float> LineCollider::collidesWith(CircleCollider* other) {
+    auto normal = this->end - this->start;
+    normal /= sqrt(normal.x * normal.x + normal.y * normal.y);
+    auto length_up_to_center = dotProduct(normal, other->shape.getPosition() - this->start);
+
+    auto length = sqrt(pow(this->end.x - this->start.x, 2) + pow(this->end.y - this->start.y, 2));
+
+    if (length_up_to_center < -other->shape.getRadius() || length_up_to_center > length + other->shape.getRadius()) {
+        return std::nullopt;
+    }
+
+    auto rotated_normal = sf::Vector2f(normal.y, -normal.x);
+
+    auto line_on_rn = dotProduct(rotated_normal, this->start);
+    auto circle_on_rn = dotProduct(rotated_normal, other->shape.getPosition());
+
+    if (abs(line_on_rn - circle_on_rn) > other->shape.getRadius()) {
+        return std::nullopt;
+    }
+
+    auto how_deep_line_is_in_circle = sqrt(pow(other->shape.getRadius(), 2) - pow(line_on_rn - circle_on_rn, 2));
+
+    auto new_length = fmin(fmax(length_up_to_center - how_deep_line_is_in_circle, 0.0f), length);
+
+    return std::make_optional(new_length);
+}
+
+std::optional<std::tuple<sf::Vector2f, float>> CircleCollider::collidesWith(ConvexShapeCollider* other) {
     //TODO
 
-    return std::make_tuple(false, std::nullopt);
+    return std::nullopt;
 }
 
-std::tuple<bool, std::optional<float>> LineCollider::collidesWith(ConvexShapeCollider* other) {
-    //TODO
-
-    return std::make_tuple(false, std::nullopt);
+std::optional<float> CircleCollider::collidesWith(LineCollider* other) {
+    return other->collidesWith(this);
 }
 
-std::tuple<bool, std::optional<float>> LineCollider::collidesWith(CircleCollider* other) {
-    int length_up_to_center = dotProduct(this->end - this->start, other->shape.getPosition() - this->start);
-
-    std::cout << length_up_to_center << std::endl;
-
-    return std::make_tuple(false, std::nullopt);
-}
-
-std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> CircleCollider::collidesWith(ConvexShapeCollider* other) {
-    //TODO
-
-    return std::make_tuple(false, std::nullopt);
-}
-
-std::tuple<bool, std::optional<float>> CircleCollider::collidesWith(LineCollider* other) {
-    //TODO
-
-    return std::make_tuple(false, std::nullopt);
-}
-
-std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> CircleCollider::collidesWith(CircleCollider* other) {
+std::optional<std::tuple<sf::Vector2f, float>> CircleCollider::collidesWith(CircleCollider* other) {
     this->shape.getPosition();
     other->shape.getPosition();
 
@@ -206,9 +257,9 @@ std::tuple<bool, std::optional<std::tuple<sf::Vector2f, float>>> CircleCollider:
         float magnitude = sqrt(MTV.x * MTV.x + MTV.y * MTV.y);
         MTV /= magnitude;
 
-        return std::make_tuple(true, std::make_tuple(MTV, this->shape.getRadius() + other->shape.getRadius() - distance));
+        return std::make_tuple(MTV, this->shape.getRadius() + other->shape.getRadius() - distance);
     } else {
-        return std::make_tuple(false, std::nullopt);
+        return std::nullopt;
     }
 }
 

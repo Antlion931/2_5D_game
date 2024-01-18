@@ -21,6 +21,7 @@ struct Walls {
 };
 
 using CollisionQuery = flecs::query<ConvexShapeCollider, Walls>;
+using LinesWallsQuery = flecs::query<LineCollider, Walls>;
 using WallsQuery = flecs::query<Walls>;
 
 struct Attacks

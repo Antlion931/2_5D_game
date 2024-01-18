@@ -38,7 +38,7 @@ TEST(collision, circle_on_circle_collision)
 
     auto result = cc1.collidesWith(&cc2);
 
-    EXPECT_TRUE(get<0>(result));
+    EXPECT_TRUE(result.has_value());
 
     auto positions = positionOfABToResolveCollision(&cc1, &cc2);
 
@@ -47,7 +47,7 @@ TEST(collision, circle_on_circle_collision)
 
     result = cc1.collidesWith(&cc2);
 
-    EXPECT_FALSE(get<0>(result));
+    EXPECT_FALSE(result.has_value());
 }
 
 TEST(collision, player_on_right_eage_of_wall)
@@ -61,7 +61,7 @@ TEST(collision, player_on_right_eage_of_wall)
 
     auto result = player.collidesWith(&wall);
 
-    EXPECT_TRUE(get<0>(result));
+    EXPECT_TRUE(result.has_value());
 
     auto position = positionOfAToResolveCollisionWithB(&player, &wall);
 
@@ -69,7 +69,7 @@ TEST(collision, player_on_right_eage_of_wall)
 
     result = player.collidesWith(&wall);
 
-    EXPECT_FALSE(get<0>(result));
+    EXPECT_FALSE(result.has_value());
 }
 
 TEST(collision, player_outside_of_wall)
@@ -81,7 +81,7 @@ TEST(collision, player_outside_of_wall)
     player.shape.setRotation(-116.613);
     wall.shape.setPosition(sf::Vector2f{0, 0});
 
-    EXPECT_FALSE(get<0>(player.collidesWith(&wall)));
+    EXPECT_FALSE(player.collidesWith(&wall).has_value());
 }
 
 TEST(collision, player_on_left_eage_of_wall)
@@ -95,7 +95,7 @@ TEST(collision, player_on_left_eage_of_wall)
 
     auto result = player.collidesWith(&wall);
 
-    EXPECT_TRUE(get<0>(result));
+    EXPECT_TRUE(result.has_value());
 
     auto position = positionOfAToResolveCollisionWithB(&player, &wall);
 
@@ -103,7 +103,7 @@ TEST(collision, player_on_left_eage_of_wall)
 
     result = player.collidesWith(&wall);
 
-    EXPECT_FALSE(get<0>(result));
+    EXPECT_FALSE(result.has_value());
 }
 
 TEST(collision, player_on_bottom_eage_of_wall)
@@ -117,7 +117,7 @@ TEST(collision, player_on_bottom_eage_of_wall)
 
     auto result = player.collidesWith(&wall);
 
-    EXPECT_TRUE(get<0>(result));
+    EXPECT_TRUE(result.has_value());
 
     auto position = positionOfAToResolveCollisionWithB(&player, &wall);
 
@@ -125,8 +125,7 @@ TEST(collision, player_on_bottom_eage_of_wall)
 
     result = player.collidesWith(&wall);
 
-    EXPECT_FALSE(get<0>(result));
-
+    EXPECT_FALSE(result.has_value());
 }
 
 TEST(collision, player_on_top_eage_of_wall)
@@ -140,7 +139,7 @@ TEST(collision, player_on_top_eage_of_wall)
 
     auto result = player.collidesWith(&wall);
 
-    EXPECT_TRUE(get<0>(result));
+    EXPECT_TRUE(result.has_value());
 
     auto position = positionOfAToResolveCollisionWithB(&player, &wall);
 
@@ -148,5 +147,5 @@ TEST(collision, player_on_top_eage_of_wall)
 
     result = player.collidesWith(&wall);
 
-    EXPECT_FALSE(get<0>(result));
+    EXPECT_FALSE(result.has_value());
 }

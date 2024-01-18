@@ -1,5 +1,6 @@
 #include "game.hpp"
 #include "collision.hpp"
+#include <SFML/System/Vector2.hpp>
 #include <algorithm>
 #include <flecs.h>
 #include <SFML/Window.hpp>
@@ -151,213 +152,15 @@ void run()
     flecs::entity enemy1 {world.entity()};
     flecs::entity enemy3 {world.entity()};
 
-    flecs::entity wall0 {world.entity()};
-    auto collider = sf::ConvexShape{4};
-    collider.setPoint(0, sf::Vector2f{-20, -20});
-    collider.setPoint(1, sf::Vector2f{-20, 460});
-    collider.setPoint(2, sf::Vector2f{0, 460});
-    collider.setPoint(3, sf::Vector2f{0, -20});
     std::vector<std::pair<glm::vec2, glm::vec2>> walls;
-
-    walls.push_back(std::make_pair(glm::vec2{-20, -20}, glm::vec2{-20, 460}));
-    walls.push_back(std::make_pair(glm::vec2{-20, 460}, glm::vec2{0, 460}));
-    walls.push_back(std::make_pair(glm::vec2{0, 460}, glm::vec2{0, -20}));
-    walls.push_back(std::make_pair(glm::vec2{0, -20}, glm::vec2{-20, -20}));
-
-    wall0.set(ConvexShapeCollider{collider}).set(Walls{walls});
-
-    flecs::entity wall1 {world.entity()};
-    collider.setPoint(0, sf::Vector2f{-20, 400});
-    collider.setPoint(1, sf::Vector2f{-20, 460});
-    collider.setPoint(2, sf::Vector2f{460, 460});
-    collider.setPoint(3, sf::Vector2f{460, 400});
-
-    walls.clear();
-
-    walls.push_back(std::make_pair(glm::vec2{-20, 400}, glm::vec2{-20, 460}));
-    walls.push_back(std::make_pair(glm::vec2{-20, 460}, glm::vec2{460, 460}));
-    walls.push_back(std::make_pair(glm::vec2{460, 460}, glm::vec2{460, 400}));
-    walls.push_back(std::make_pair(glm::vec2{460, 400}, glm::vec2{-20, 400}));
-
-    wall1.set(ConvexShapeCollider{collider}).set(Walls{walls});
-
-    flecs::entity wall2 {world.entity()};
-    collider.setPoint(0, sf::Vector2f{400, -20});
-    collider.setPoint(1, sf::Vector2f{400, 460});
-    collider.setPoint(2, sf::Vector2f{460, 460});
-    collider.setPoint(3, sf::Vector2f{460, -20});
-
-    walls.clear();
-
-    walls.push_back(std::make_pair(glm::vec2{400, -20}, glm::vec2{400, 460}));
-    walls.push_back(std::make_pair(glm::vec2{400, 460}, glm::vec2{460, 460}));
-    walls.push_back(std::make_pair(glm::vec2{460, 460}, glm::vec2{460, -20}));
-    walls.push_back(std::make_pair(glm::vec2{460, -20}, glm::vec2{400, -20}));
-
-    wall2.set(ConvexShapeCollider{collider}).set(Walls{walls});
-
-    flecs::entity wall3 {world.entity()};
-    collider.setPoint(0, sf::Vector2f{-20, -20});
-    collider.setPoint(1, sf::Vector2f{-20, 0});
-    collider.setPoint(2, sf::Vector2f{460, 0});
-    collider.setPoint(3, sf::Vector2f{460, -20});
-
-    walls.clear();
-
-    walls.push_back(std::make_pair(glm::vec2{-20, -20}, glm::vec2{-20, 0}));
-    walls.push_back(std::make_pair(glm::vec2{-20, 0}, glm::vec2{460, 0}));
-    walls.push_back(std::make_pair(glm::vec2{460, 0}, glm::vec2{460, -20}));
-    walls.push_back(std::make_pair(glm::vec2{460, -20}, glm::vec2{-20, -20}));
-
-    wall3.set(ConvexShapeCollider{collider}).set(Walls{walls});
-
-    flecs::entity wall4 {world.entity()};
-    collider.setPoint(0, sf::Vector2f{40, 40});
-    collider.setPoint(1, sf::Vector2f{40, 360});
-    collider.setPoint(2, sf::Vector2f{60, 360});
-    collider.setPoint(3, sf::Vector2f{60, 40});
-
-    walls.clear();
-
-    walls.push_back(std::make_pair(glm::vec2{40, 40}, glm::vec2{40, 360}));
-    walls.push_back(std::make_pair(glm::vec2{40, 360}, glm::vec2{60, 360}));
-    walls.push_back(std::make_pair(glm::vec2{60, 360}, glm::vec2{60, 40}));
-    walls.push_back(std::make_pair(glm::vec2{60, 40}, glm::vec2{40, 40}));
-
-    wall4.set(ConvexShapeCollider{collider}).set(Walls{walls});
-
-    flecs::entity wall5 {world.entity()};
-    collider.setPoint(0, sf::Vector2f{40, 340});
-    collider.setPoint(1, sf::Vector2f{40, 360});
-    collider.setPoint(2, sf::Vector2f{180, 360});
-    collider.setPoint(3, sf::Vector2f{180, 340});
-
-    walls.clear();
-
-    walls.push_back(std::make_pair(glm::vec2{40, 340}, glm::vec2{40, 360}));
-    walls.push_back(std::make_pair(glm::vec2{40, 360}, glm::vec2{180, 360}));
-    walls.push_back(std::make_pair(glm::vec2{180, 360}, glm::vec2{180, 340}));
-    walls.push_back(std::make_pair(glm::vec2{180, 340}, glm::vec2{40, 340}));
-
-    wall5.set(ConvexShapeCollider{collider}).set(Walls{walls});
-
-    flecs::entity wall6 {world.entity()};
-    collider.setPoint(0, sf::Vector2f{220, 340});
-    collider.setPoint(1, sf::Vector2f{220, 360});
-    collider.setPoint(2, sf::Vector2f{360, 360});
-    collider.setPoint(3, sf::Vector2f{360, 340});
-
-    walls.clear();
-
-    walls.push_back(std::make_pair(glm::vec2{220, 340}, glm::vec2{220, 360}));
-    walls.push_back(std::make_pair(glm::vec2{220, 360}, glm::vec2{360, 360}));
-    walls.push_back(std::make_pair(glm::vec2{360, 360}, glm::vec2{360, 340}));
-    walls.push_back(std::make_pair(glm::vec2{360, 340}, glm::vec2{220, 340}));
-
-    wall6.set(ConvexShapeCollider{collider}).set(Walls{walls});
-
-    flecs::entity wall7 {world.entity()};
-    collider.setPoint(0, sf::Vector2f{340, 40});
-    collider.setPoint(1, sf::Vector2f{340, 360});
-    collider.setPoint(2, sf::Vector2f{360, 360});
-    collider.setPoint(3, sf::Vector2f{360, 40});
-
-    walls.clear();
-
-    walls.push_back(std::make_pair(glm::vec2{340, 40}, glm::vec2{340, 360}));
-    walls.push_back(std::make_pair(glm::vec2{340, 360}, glm::vec2{360, 360}));
-    walls.push_back(std::make_pair(glm::vec2{360, 360}, glm::vec2{360, 40}));
-    walls.push_back(std::make_pair(glm::vec2{360, 40}, glm::vec2{340, 40}));
-
-    wall7.set(ConvexShapeCollider{collider}).set(Walls{walls});
-
-    flecs::entity wall8 {world.entity()};
-    collider.setPoint(0, sf::Vector2f{40, 40});
-    collider.setPoint(1, sf::Vector2f{40, 60});
-    collider.setPoint(2, sf::Vector2f{360, 60});
-    collider.setPoint(3, sf::Vector2f{360, 40});
-
-    walls.clear();
-
-    walls.push_back(std::make_pair(glm::vec2{40, 40}, glm::vec2{40, 60}));
-    walls.push_back(std::make_pair(glm::vec2{40, 60}, glm::vec2{360, 60}));
-    walls.push_back(std::make_pair(glm::vec2{360, 60}, glm::vec2{360, 40}));
-    walls.push_back(std::make_pair(glm::vec2{360, 40}, glm::vec2{40, 40}));
-
-    wall8.set(ConvexShapeCollider{collider}).set(Walls{walls});
-
-    flecs::entity wall9 {world.entity()};
-    collider.setPoint(0, sf::Vector2f{120, 120});
-    collider.setPoint(1, sf::Vector2f{120, 180});
-    collider.setPoint(2, sf::Vector2f{180, 180});
-    collider.setPoint(3, sf::Vector2f{180, 120});
-
-    walls.clear();
-
-    walls.push_back(std::make_pair(glm::vec2{120, 120}, glm::vec2{120, 180}));
-    walls.push_back(std::make_pair(glm::vec2{120, 180}, glm::vec2{180, 180}));
-    walls.push_back(std::make_pair(glm::vec2{180, 180}, glm::vec2{180, 120}));
-    walls.push_back(std::make_pair(glm::vec2{180, 120}, glm::vec2{120, 120}));
-
-    wall9.set(ConvexShapeCollider{collider}).set(Walls{walls});
-
-    flecs::entity wall10 {world.entity()};
-
-    auto collider2 = sf::ConvexShape{3};
-    
-    collider2.setPoint(0, sf::Vector2f{250, 220});
-    collider2.setPoint(1, sf::Vector2f{220, 280});
-    collider2.setPoint(2, sf::Vector2f{280, 280});
-
-    walls.clear();
-
-    walls.push_back(std::make_pair(glm::vec2{250, 220}, glm::vec2{220, 280}));
-    walls.push_back(std::make_pair(glm::vec2{220, 280}, glm::vec2{280, 280}));
-    walls.push_back(std::make_pair(glm::vec2{280, 280}, glm::vec2{250, 220}));
-
-    wall10.set(ConvexShapeCollider{collider2}).set(Walls{walls});
-
-    flecs::entity wall11 {world.entity()};
-
-    auto collider5 = sf::ConvexShape{5};
-    
-    collider5.setPoint(0, sf::Vector2f{150, 220});
-    collider5.setPoint(1, sf::Vector2f{120, 250});
-    collider5.setPoint(2, sf::Vector2f{135, 280});
-    collider5.setPoint(3, sf::Vector2f{165, 280});
-    collider5.setPoint(4, sf::Vector2f{180, 260});
-
-    walls.clear();
-
-    walls.push_back(std::make_pair(glm::vec2{150, 220}, glm::vec2{120, 250}));
-    walls.push_back(std::make_pair(glm::vec2{120, 250}, glm::vec2{135, 280}));
-    walls.push_back(std::make_pair(glm::vec2{135, 280}, glm::vec2{165, 280}));
-    walls.push_back(std::make_pair(glm::vec2{165, 280}, glm::vec2{180, 260}));
-    walls.push_back(std::make_pair(glm::vec2{180, 260}, glm::vec2{150, 220}));
-
-    wall11.set(ConvexShapeCollider{collider5}).set(Walls{walls});
 
     flecs::entity wall12 {world.entity()};
 
-    auto collider6 = sf::ConvexShape{6};
-    
-    collider6.setPoint(0, sf::Vector2f{235, 120});
-    collider6.setPoint(1, sf::Vector2f{220, 150});
-    collider6.setPoint(2, sf::Vector2f{235, 180});
-    collider6.setPoint(3, sf::Vector2f{265, 180});
-    collider6.setPoint(4, sf::Vector2f{280, 150});
-    collider6.setPoint(5, sf::Vector2f{265, 120});
-
     walls.clear();
 
-    walls.push_back(std::make_pair(glm::vec2{235, 120}, glm::vec2{220, 150}));
-    walls.push_back(std::make_pair(glm::vec2{220, 150}, glm::vec2{235, 180}));
-    walls.push_back(std::make_pair(glm::vec2{235, 180}, glm::vec2{265, 180}));
-    walls.push_back(std::make_pair(glm::vec2{265, 180}, glm::vec2{280, 150}));
-    walls.push_back(std::make_pair(glm::vec2{280, 150}, glm::vec2{265, 120}));
-    walls.push_back(std::make_pair(glm::vec2{265, 120}, glm::vec2{235, 120}));
+    walls.push_back(std::make_pair(glm::vec2{30, 30}, glm::vec2{100, 130}));
 
-    wall12.set(ConvexShapeCollider{collider6}).set(Walls{walls});
+    wall12.set(LineCollider{sf::Vector2f{30, 30}, sf::Vector2f{100, 130}}).set(Walls{walls});
 
     sf::CircleShape player_collider = sf::CircleShape();
     player_collider.setRadius(6);
@@ -525,6 +328,7 @@ void run()
         }
     });
 
+
     WallsQuery walls_query = world.query<Walls>();
 
     auto drawScreenSys = world.system("draw").ctx(&walls_query).kind(flecs::PostUpdate)
@@ -559,6 +363,24 @@ void run()
                     r1.shape.setPosition(position.x, position.y);
             });
         });
+
+    LinesWallsQuery line_wall_query = world.query<LineCollider, Walls>();
+
+    auto line_circle_colider_debug = world.system<CircleCollider, Position>().ctx(&line_wall_query).kind(flecs::OnUpdate).each([](flecs::iter& it, size_t i, CircleCollider& c, Position& p) {
+        LinesWallsQuery *q = it.ctx<LinesWallsQuery>();
+        flecs::entity e1 = it.entity(i);
+
+        c.shape.setPosition(p.x, p.y);
+
+        q->each([&](flecs::entity e2, LineCollider& l, Walls& w) {
+                auto resutl = l.collidesWith(&c);
+
+                if (resutl.has_value())
+                {
+                    std::cout << "Collision" << std::endl;
+                }
+        });
+    });
 
     auto clear_screen_sys = world.system("clear").kind(flecs::PreUpdate).iter([](flecs::iter& it){
         //SFMLWindow* window = it.world().get_mut<SFMLWindow>();
