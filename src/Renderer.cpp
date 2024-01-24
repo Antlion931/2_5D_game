@@ -61,9 +61,9 @@ void processInput(GLFWwindow* window, Renderer& renderer)
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         renderer.moveCamera({0.0f, -cameraSpeed});
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        renderer.moveCamera({-cameraSpeed, 0.0f});
+        renderer.moveCamera({+cameraSpeed, 0.0f});
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        renderer.moveCamera({cameraSpeed, 0.0f});
+        renderer.moveCamera({-cameraSpeed, 0.0f});
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         renderer.rotateCamera({0.1f, 0.0f, 0.0f, 0.00f});
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)

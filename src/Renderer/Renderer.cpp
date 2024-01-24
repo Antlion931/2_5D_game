@@ -27,24 +27,75 @@ namespace {
 Renderer::Renderer(GLFWwindow& window): m_window(window)
 {
     glEnable(GL_DEPTH_TEST);
-    m_wallShader = std::make_unique<Shader>("resources/shaders/wall3d.glsl");
 
-    m_groundShader = std::make_unique<Shader>("resources/shaders/ground.glsl");
-
-    const float vertices[] = {
-        -100000.0f, -1.0f, -100000.0f,
-        -100000.0f, -1.0f, 100000.0f,
-        100000.0f, -1.0f, 100000.0f,
-        100000.0f, -1.0f, -100000.0f
+    const float vertices[] = {          // texture coords
+        -100000.0f, -0.1f, -100000.0f,  -100000.0f, -100000.0f,
+        -100000.0f, -0.1f, 100000.0f,   -100000.0f,  100000.0f,
+        100000.0f, -0.1f, 100000.0f,     100000.0f,  100000.0f,
+        100000.0f, -0.1f, -100000.0f,    100000.0f, -100000.0f
     };
 
-    m_groundVertexBuffer = std::make_unique<VertexBuffer>(vertices, 12 * sizeof(float));
+    m_groundVertexBuffer = std::make_unique<VertexBuffer>(vertices, 20 * sizeof(float));
     m_groundVertexArray = std::make_unique<VertexArray>();
 
     VertexBufferLayout layout;
     layout.Push<float>(3);
+    layout.Push<float>(2);
 
     m_groundVertexArray->AddBuffer(*m_groundVertexBuffer, layout);
+
+    float skyboxVertices[] = {
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+};
+
+    m_skyboxVertexBuffer = std::make_unique<VertexBuffer>(skyboxVertices, sizeof(skyboxVertices));
+    m_skyboxVertexArray = std::make_unique<VertexArray>();
+
+    VertexBufferLayout skyboxLayout;
+    skyboxLayout.Push<float>(3);
+    skyboxLayout.Push<float>(2);
+
+    m_skyboxVertexArray->AddBuffer(*m_skyboxVertexBuffer, skyboxLayout);
 }
 
 void Renderer::render() noexcept
@@ -66,7 +117,15 @@ void Renderer::render() noexcept
 
 void Renderer::moveCamera(const glm::vec2& movement) noexcept
 {
-    m_camera.position -= movement;
+    // m_camera.position -= movement;
+
+    const float angle = m_camera.rotation.x;
+    const glm::mat4 rotation = glm::rotate(glm::mat4{1.0f}, angle, glm::vec3{0.0f, 1.0f, 0.0f});
+
+    const glm::vec4 movement4 = rotation * glm::vec4{movement.x, 0.0f, movement.y, 1.0f};
+
+    m_camera.position.x -= movement4.x;
+    m_camera.position.y -= movement4.z;
 }
 
 void Renderer::setCamera(Position cp) noexcept
@@ -148,57 +207,102 @@ void Renderer::toggleSettings(Settings settings) noexcept
 void Renderer::load(const Level& level) noexcept
 {
     const auto& walls = level.static_walls;
-    std::cout << walls.size() << std::endl;
 
     const float groundHeight = 0.0f;
 
-    std::vector<float> vertices;
-
-    for (const auto& wall : walls)
+    for (int i = 0; i < 3; i++)
     {
-        vertices.push_back(wall.a.x);
-        vertices.push_back(wall.a.y);
-        vertices.push_back(groundHeight);
+        std::vector<float> vertices;
+        std::vector<uint> indices;
+        uint offset = 0;
 
-        vertices.push_back(wall.b.x);
-        vertices.push_back(wall.b.y);
-        vertices.push_back(groundHeight);
+        for (const auto& wall : walls)
+        {
+            if (wall.textureId != i)
+                continue;
 
-        vertices.push_back(wall.b.x);
-        vertices.push_back(wall.b.y);
-        vertices.push_back(wall.height);
+            const float distance = sqrtf(
+                (wall.a.x - wall.b.x) * (wall.a.x - wall.b.x) +
+                (wall.a.y - wall.b.y) * (wall.a.y - wall.b.y)
+            );
 
-        vertices.push_back(wall.a.x);
-        vertices.push_back(wall.a.y);
-        vertices.push_back(wall.height);
+            vertices.push_back(wall.a.x);
+            vertices.push_back(wall.a.y);
+            vertices.push_back(groundHeight);
+
+            if (wall.textureMode == TextureMode::Stretch)
+            {
+                vertices.push_back(0.0f);
+                vertices.push_back(0.0f);
+            } else {
+                vertices.push_back(0.0f);
+                vertices.push_back(0.0f);
+            }
+
+            vertices.push_back(wall.b.x);
+            vertices.push_back(wall.b.y);
+            vertices.push_back(groundHeight);
+
+            if (wall.textureMode == TextureMode::Stretch)
+            {
+                vertices.push_back(1.0f);
+                vertices.push_back(0.0f);
+            } else {
+                vertices.push_back(distance / 4.f);
+                vertices.push_back(0.0f);
+            }
+
+            vertices.push_back(wall.b.x);
+            vertices.push_back(wall.b.y);
+            vertices.push_back(wall.height);
+
+            if (wall.textureMode == TextureMode::Stretch)
+            {
+                vertices.push_back(1.0f);
+                vertices.push_back(1.0f);
+            } else {
+                vertices.push_back(distance / 4.f);
+                vertices.push_back(wall.height / 4.f);
+            }
+
+            vertices.push_back(wall.a.x);
+            vertices.push_back(wall.a.y);
+            vertices.push_back(wall.height);
+
+            if (wall.textureMode == TextureMode::Stretch)
+            {
+                vertices.push_back(0.0f);
+                vertices.push_back(1.0f);
+            } else {
+                vertices.push_back(0.0f);
+                vertices.push_back(wall.height / 4.f);
+            }
+
+            indices.push_back(offset + 0);
+            indices.push_back(offset + 1);
+            indices.push_back(offset + 2);
+
+            indices.push_back(offset + 2);
+            indices.push_back(offset + 3);
+            indices.push_back(offset + 0);
+
+            offset += 4;
+        }
+
+        m_walls[i].vertexBuffer =
+            std::make_unique<VertexBuffer>(vertices.data(), vertices.size() * sizeof(float));
+        m_walls[i].vertexArray =
+            std::make_unique<VertexArray>();
+
+        VertexBufferLayout layout;
+        layout.Push<float>(3);
+        layout.Push<float>(2);
+
+        m_walls[i].vertexArray->AddBuffer(*m_walls[i].vertexBuffer, layout);
+
+        m_walls[i].indexBuffer =
+            std::make_unique<IndexBuffer>(indices.data(), indices.size());
     }
-
-    std::vector<uint> indices;
-    uint offset = 0;
-
-    for (const auto& wall : walls)
-    {
-        indices.push_back(offset + 0);
-        indices.push_back(offset + 1);
-        indices.push_back(offset + 2);
-
-        indices.push_back(offset + 2);
-        indices.push_back(offset + 3);
-        indices.push_back(offset + 0);
-
-        offset += 4;
-    }
-
-
-    m_wallVertexBuffer = std::make_unique<VertexBuffer>(vertices.data(), vertices.size() * sizeof(float));
-    m_wallVertexArray = std::make_unique<VertexArray>();
-
-    VertexBufferLayout layout;
-    layout.Push<float>(3);
-
-    m_wallVertexArray->AddBuffer(*m_wallVertexBuffer, layout);
-
-    m_wallIndexBuffer = std::make_unique<IndexBuffer>(indices.data(), indices.size());
 }
 
 // TODO: Rewrite in modern OpenGL
@@ -207,7 +311,6 @@ void Renderer::draw3D() noexcept
     glClearColor(0.2f, 0.3f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    glm::mat4 model = glm::mat4(1.0f);
 
     glm::vec3 cameraPos = glm::vec3(m_camera.position.x, 2.0f, m_camera.position.y);
     glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -224,37 +327,78 @@ void Renderer::draw3D() noexcept
     // view = glm::translate(view, glm::vec3(-m_camera.position.x, -2.0f, -m_camera.position.y));
     // view = glm::rotate(view, m_camera.rotation.x, glm::vec3(0.0f, 1.0f, 0.0f));
 
-    glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10000.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 20000.0f);
 
+    // Skybox
+
+    glm::mat4 model = glm::mat4(1.0f);
+
+    // model = glm::translate(model, cameraPos);
+    model = glm::translate(model, glm::vec3(m_camera.position.x, -10.0f, m_camera.position.y));
+    model = glm::scale(model, glm::vec3(10000.0f, 10000.0f, 10000.0f));
+
+    m_skyboxShader.Bind();
+    m_skyboxShader.SetUniformM("uModel", model);
+    m_skyboxShader.SetUniformM("uView", view);
+    m_skyboxShader.SetUniformM("uProjection", proj);
+    m_skyboxShader.SetUniform("uTexture", 0);
+
+    m_skyboxTexture.Bind();
+    m_skyboxVertexArray->Bind();
+
+    glDrawArrays(GL_TRIANGLES, 0, 36);
     // Ground
 
-    m_groundShader->Bind();
-    m_groundShader->SetUniformM("uModel", model);
-    m_groundShader->SetUniformM("uView", view);
-    m_groundShader->SetUniformM("uProjection", proj);
 
+    m_groundShader.Bind();
+    m_groundShader.SetUniformM("uModel", glm::mat4(1.0f));
+    m_groundShader.SetUniformM("uView", view);
+    m_groundShader.SetUniformM("uProjection", proj);
+    m_groundShader.SetUniform("uTexture", 0);
+
+    m_groundTexture.Bind();
     m_groundVertexArray->Bind();
 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
     m_groundVertexArray->Unbind();
-    m_groundShader->Unbind();
+    m_groundShader.Unbind();
 
     // Walls
-    m_wallShader->Bind();
-    m_wallShader->SetUniform("uCamPos", cameraPos.x, cameraPos.y, cameraPos.z);
-    m_wallShader->SetUniformM("uModel", model);
-    m_wallShader->SetUniformM("uView", view);
-    m_wallShader->SetUniformM("uProjection", proj);
+    for (int i = 0; i < 3; i++)
+    {
+        auto& walls = m_walls[i];
 
-    m_wallVertexArray->Bind();
-    m_wallIndexBuffer->Bind();
+        walls.vertexArray->Bind();
+        walls.indexBuffer->Bind();
 
-    glDrawElements(GL_TRIANGLES, m_wallIndexBuffer->GetCount(), GL_UNSIGNED_INT, nullptr);
+        m_wallShader.Bind();
+        m_wallShader.SetUniformM("uModel", glm::mat4(1.0f));
+        m_wallShader.SetUniformM("uView", view);
+        m_wallShader.SetUniformM("uProjection", proj);
+        m_wallShader.SetUniform("uTexture", 0);
 
-    m_wallIndexBuffer->Unbind();
-    m_wallVertexArray->Unbind();
-    m_wallShader->Unbind();
+        m_textures[i].Bind();
+
+        glDrawElements(GL_TRIANGLES, walls.indexBuffer->GetCount(), GL_UNSIGNED_INT, nullptr);
+
+        walls.indexBuffer->Unbind();
+        walls.vertexArray->Unbind();
+        m_wallShader.Unbind();
+    }
+    // m_wallShader.Bind();
+    // m_wallShader.SetUniformM("uModel", glm::mat4(1.0f));
+    // m_wallShader.SetUniformM("uView", view);
+    // m_wallShader.SetUniformM("uProjection", proj);
+
+    // m_wallVertexArray->Bind();
+    // m_wallIndexBuffer->Bind();
+
+    // glDrawElements(GL_TRIANGLES, m_wallIndexBuffer->GetCount(), GL_UNSIGNED_INT, nullptr);
+
+    // m_wallIndexBuffer->Unbind();
+    // m_wallVertexArray->Unbind();
+    // m_wallShader.Unbind();
 }
 
 

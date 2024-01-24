@@ -7,6 +7,7 @@
 #include "Renderer/VertexArray.hpp"
 #include "Renderer/VertexBuffer.hpp"
 #include "Renderer/IndexBuffer.hpp"
+#include "Renderer/Texture.hpp"
 
 #include "Game/GameComponents.hpp"
 
@@ -37,15 +38,36 @@ class Renderer
 
     private:
         // Static walls
-        std::unique_ptr<Shader> m_wallShader;
-        std::unique_ptr<VertexBuffer> m_wallVertexBuffer;
-        std::unique_ptr<VertexArray> m_wallVertexArray;
-        std::unique_ptr<IndexBuffer> m_wallIndexBuffer;
+        struct WallType {
+            uint texture;
+            std::unique_ptr<VertexBuffer> vertexBuffer;
+            std::unique_ptr<VertexArray> vertexArray;
+            std::unique_ptr<IndexBuffer> indexBuffer;
+        };
+
+        std::array<WallType, 3> m_walls {};
+
+        Shader m_wallShader = Shader("resources/shaders/wall3d.glsl");
+        // std::unique_ptr<VertexBuffer> m_wallVertexBuffer;
+        // std::unique_ptr<VertexArray> m_wallVertexArray;
+        // std::unique_ptr<IndexBuffer> m_wallIndexBuffer;
         // Ground and ceiling
-        std::unique_ptr<Shader> m_groundShader;
+        Texture m_groundTexture = Texture("resources/textures/ground.jpg");
+        Shader m_groundShader = Shader("resources/shaders/ground.glsl");
         std::unique_ptr<VertexBuffer> m_groundVertexBuffer;
         std::unique_ptr<VertexArray> m_groundVertexArray;
         //
+        Texture m_skyboxTexture = Texture("resources/textures/skybox.png");
+        Shader m_skyboxShader = Shader("resources/shaders/skybox.glsl");
+        std::unique_ptr<VertexBuffer> m_skyboxVertexBuffer;
+        std::unique_ptr<VertexArray> m_skyboxVertexArray;
+        std::unique_ptr<IndexBuffer> m_skyboxIndexBuffer;
+
+        const std::array<Texture, 3> m_textures = {
+            Texture("resources/textures/building2.jpg"),
+            Texture("resources/textures/wood.jpg"),
+            Texture("resources/textures/bricks.jpg")
+        };
 
         GLFWwindow& m_window;
 
